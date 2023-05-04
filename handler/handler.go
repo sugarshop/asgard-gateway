@@ -8,7 +8,9 @@ type Handler interface {
 }
 
 func handlers() []Handler {
-	return []Handler{}
+	return []Handler{
+		NewOpenAIHandler(),
+	}
 }
 
 // Register Register all API endpoints
