@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - ${{ github.ref }}
+  pull_request:
+    branches:
+      - main
+      - develop
 
 jobs:
   ut:
