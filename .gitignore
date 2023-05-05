@@ -29,6 +29,6 @@ vendor/
 kitex_gen/
 mocktest/
 
-# ignore mocks
+#ignore mocks
 mock*.go
 !mockdb.go
