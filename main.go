@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sugarshop/asgard-gateway/handler"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,6 +16,9 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	// register other api
+	handler.Register(engine)
 
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below
