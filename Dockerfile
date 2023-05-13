@@ -1,4 +1,4 @@
-FROM registry.digitalocean.com/francisco/golang-base:1.17 AS build
+FROM registry.digitalocean.com/francisco/golang-base:1.18 AS build
 ARG ARCH="amd64"
 ARG OS="linux"
 ARG PROJECT="asgard-gateway"
