@@ -70,7 +70,7 @@ func (h *OpenAIHandler) Completions(c *gin.Context) {
 
 // OpenAIStream return completion stream of the OpenAIChat
 func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, error) {
-	client := openai.NewClient(model.OPENAIAPIKEY)
+	client := openai.NewClient(param.Key)
 	ctx := context.Background()
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
