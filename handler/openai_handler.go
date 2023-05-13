@@ -34,7 +34,7 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 
 	stream, apiErr := h.OpenAIStream(c, &reqBody)
 	if apiErr != nil {
-		return fmt.Errorf("StatusCode: %d, Type:%s, Code:%s", apiErr.HTTPStatusCode, apiErr.Type, apiErr.Code)
+		return fmt.Errorf("StatusCode: %d, Type:%s, Code:%v", apiErr.HTTPStatusCode, apiErr.Type, apiErr.Code)
 	}
 
 	gone := c.Stream(func(w io.Writer) bool {
@@ -93,7 +93,7 @@ func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReq
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		apiErr := buildError(err)
-		fmt.Printf("ChatCompletionStream error Code: %s, Type:%s, StatusCode: %d", apiErr.Code, apiErr.Type, apiErr.HTTPStatusCode)
+		fmt.Printf("ChatCompletionStream error Code: %v, Type:%s, StatusCode: %d", apiErr.Code, apiErr.Type, apiErr.HTTPStatusCode)
 		return nil, apiErr
 	}
 	//defer stream.Close() // defer after call for stream
