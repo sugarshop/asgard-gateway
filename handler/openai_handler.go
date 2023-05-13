@@ -21,21 +21,20 @@ func NewOpenAIHandler() *OpenAIHandler {
 }
 
 func (h *OpenAIHandler) Register(e *gin.Engine)  {
-	e.POST("/v1/openai/chat/completions", h.Completions)
+	e.POST("/v1/openai/chat/completions", StreamWrapper(h.Completions))
 }
 
-func (h *OpenAIHandler) Completions(c *gin.Context) {
+func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	var reqBody model.CompletionsReqBody
 	// bind json to reqBody
 	if err := c.BindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return err
 	}
 
-	stream, err := h.OpenAIStream(c, &reqBody)
-	if err != nil {
-		fmt.Printf("[Completion]: err: %+v", err)
-		return
+	stream, apiErr := h.OpenAIStream(c, &reqBody)
+	if apiErr != nil {
+		return fmt.Errorf("StatusCode: %d, Type:%s, Code:%s", apiErr.HTTPStatusCode, apiErr.Type, apiErr.Code)
 	}
 
 	gone := c.Stream(func(w io.Writer) bool {
@@ -66,10 +65,11 @@ func (h *OpenAIHandler) Completions(c *gin.Context) {
 		// do something after client is gone
 		log.Println("client is gone")
 	}
+	return nil
 }
 
 // OpenAIStream return completion stream of the OpenAIChat
-func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, error) {
+func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, *openai.APIError) {
 	client := openai.NewClient(param.Key)
 	ctx := context.Background()
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
@@ -92,9 +92,21 @@ func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReq
 	}
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
-		fmt.Printf("ChatCompletionStream error: %v\n", err)
-		return nil, err
+		apiErr := buildError(err)
+		fmt.Printf("ChatCompletionStream error Code: %s, Type:%s, StatusCode: %d", apiErr.Code, apiErr.Type, apiErr.HTTPStatusCode)
+		return nil, apiErr
 	}
 	//defer stream.Close() // defer after call for stream
 	return stream, nil
+}
+
+// buildErrorResp construct APIError
+func buildError(err error) *openai.APIError {
+	var aer *openai.APIError
+	if errors.As(err, &aer) {
+		return aer
+	}
+	// server deny
+	aer.HTTPStatusCode = 500
+	return aer
 }
