@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sugarshop/asgard-gateway/model"
 	"io"
 	"net/http"
@@ -30,7 +31,7 @@ func TestOpenAIHandler_Completions(t *testing.T) {
 		SystemPrompt: model.NEXTPUBLICDEFAULTSYSTEMPROMPT,
 		Temperature: 1,
 		Key: model.OPENAIAPIKEY,
-		Messages: []model.Message{
+		Messages: []openai.ChatCompletionMessage{
 			{Role: "system", Content: "who are u?"},
 		},
 	}
@@ -60,7 +61,6 @@ func TestOpenAIHandler_Completions(t *testing.T) {
 		t.Fatalf("Empty response body")
 	}
 }
-
 
 type TestResponseRecorder struct {
 	*httptest.ResponseRecorder
