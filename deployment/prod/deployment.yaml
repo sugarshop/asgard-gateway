@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  namespace: default
+  name: asgard-gateway
+type: Opaque
+data:
+  OPENAI_API_KEY: YOUR_BASE64_API_KEY
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: default
+  name: asgard-gateway
+  labels:
+    app: asgard-gateway
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: asgard-gateway
+  template:
+    metadata:
+      labels:
+        app: asgard-gateway
+    spec:
+      containers:
+        - name: asgard-gateway
+          image: registry.digitalocean.com/francisco/asgard-gateway:202305131923
+          resources: {}
+          ports:
+            - containerPort: 8080
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: asgard-gateway
+                  key: OPENAI_API_KEY
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: default
+  name: asgard-gateway
+  labels:
+    app: asgard-gateway
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: asgard-gateway
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: asgard-gateway-ingress
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: ai.sakurain.io
+      http:
+        paths:
+          - path: /v1
+            pathType: Prefix
+            backend:
+              service:
+                name: asgard-gateway
+                port:
+                  number: 8080
