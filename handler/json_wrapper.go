@@ -34,6 +34,28 @@ func JSONWrapper(fn func(*gin.Context) (interface{}, error)) func(*gin.Context) 
 	}
 }
 
+// StreamWrapper Encapsulate the data processing function as a STREAM API return; pay attention to using PureJSON to avoid Gin performing HTML escaping during serialization of data.
+func StreamWrapper(fn func(*gin.Context) error) func(*gin.Context) {
+	return func(c *gin.Context) {
+		err := fn(c)
+
+		// if write is been writen at here, do not write again or you will get panic
+		if c.Writer.Written() {
+			return
+		}
+
+		if err != nil {
+			//c.Set(tracing.CtxRespCodeKey, base.FAILED)
+			c.PureJSON(http.StatusOK, &ErrResp{
+				Code:   base.FAILED,
+				Msg:    err.Error(),
+				Detail: err.Error(),
+			})
+			return
+		}
+	}
+}
+
 type ErrResp struct {
 	Code   int    `json:"code"`
 	Msg    string `json:"msg"`
