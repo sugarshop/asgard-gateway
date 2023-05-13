@@ -1,6 +1,9 @@
 package model
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/sashabaranov/go-openai"
+)
 
 const (
 	OPENAIAPIHOST = "https://api.openai.com"
@@ -11,20 +14,16 @@ const (
 	OPENAIORGANIZATION = ""
 	AZUREDEPLOYMENTID = ""
 	OPENAIAPIKEY = "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"
+	OPENAIMAXTOKENS = 1000
 )
 
 type OpenAIModel struct {
 	ID string `json:"id"`
 }
 
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
 type ChatRequest struct {
 	Model      string    `json:"model,omitempty"`
-	Messages   []Message `json:"messages"`
+	Messages   []openai.ChatCompletionMessage `json:"messages"`
 	MaxTokens  int       `json:"max_tokens,omitempty"`
 	Temperature float64  `json:"temperature"`
 	Stream     bool      `json:"stream"`
@@ -46,5 +45,38 @@ type CompletionsReqBody struct {
 	SystemPrompt string            `json:"systemPrompt"`
 	Temperature  float64           `json:"temperature"`
 	Key          string            `json:"key"`
-	Messages     []Message  `json:"messages"`
+	Messages     []openai.ChatCompletionMessage  `json:"messages"`
+}
+
+// LogprobResult represents logprob result of Choice.
+type LogprobResult struct {
+	Tokens        []string             `json:"tokens"`
+	TokenLogprobs []float32            `json:"token_logprobs"`
+	TopLogprobs   []map[string]float32 `json:"top_logprobs"`
+	TextOffset    []int                `json:"text_offset"`
+}
+
+// Usage Represents the total token usage per request to OpenAI.
+type Usage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
+// CompletionChoice represents one of possible completions.
+type CompletionChoice struct {
+	Text         string        `json:"text"`
+	Index        int           `json:"index"`
+	FinishReason string        `json:"finish_reason"`
+	LogProbs     LogprobResult `json:"logprobs"`
+}
+
+// CompletionResponse represents a response structure for completion API.
+type CompletionResponse struct {
+	ID      string             `json:"id"`
+	Object  string             `json:"object"`
+	Created int64              `json:"created"`
+	Model   string             `json:"model"`
+	Choices []CompletionChoice `json:"choices"`
+	Usage   Usage              `json:"usage"`
 }

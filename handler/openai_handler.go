@@ -1,13 +1,15 @@
 package handler
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sugarshop/asgard-gateway/model"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -30,94 +32,69 @@ func (h *OpenAIHandler) Completions(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.OpenAIStream(c, reqBody)
+	stream, err := h.OpenAIStream(c, &reqBody)
 	if err != nil {
-		var openaiErr *model.OpenAIError
-		if errors.As(err, &openaiErr) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": openaiErr.Error()})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		}
+		fmt.Printf("[Completion]: err: %+v", err)
 		return
 	}
-	defer resp.Body.Close()
 
-	// todo: fix stream logic below.
-	c.Stream(func(w io.Writer) bool {
-		_, err := io.Copy(w, resp.Body)
-		if err != nil {
+	gone := c.Stream(func(w io.Writer) bool {
+		response, err := stream.Recv()
+		if errors.Is(err, io.EOF) {
+			fmt.Printf("[Completion]: Stream finished")
 			return false
 		}
-		return false
+
+		if err != nil {
+			fmt.Printf("[Completion]: Stream error: %v\n", err)
+			return false
+		}
+
+		jsonBytes, err := json.Marshal(response)
+		if err != nil {
+			fmt.Printf("[Completion]: err:%v", err)
+			return false
+		}
+		formattedData := fmt.Sprintf("data: %s\n\n", string(jsonBytes))
+		if _, err = w.Write([]byte(formattedData)); err != nil {
+			fmt.Printf("[Completion]: Write data:%s, error: %v", formattedData, err)
+			return false
+		}
+		return true
 	})
+	if gone {
+		// do something after client is gone
+		log.Println("client is gone")
+	}
 }
 
+// OpenAIStream return completion stream of the OpenAIChat
+func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, error) {
+	client := openai.NewClient(model.OPENAIAPIKEY)
+	ctx := context.Background()
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	// fixme only for test env
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 
-func (h *OpenAIHandler) OpenAIStream(c *gin.Context, body model.CompletionsReqBody) (*http.Response, error) {
-	m := body.Model
-	systemPrompt := body.SystemPrompt
-	temperature := body.Temperature
-	key := body.Key
-	messages := body.Messages
-	url := fmt.Sprintf("%s/v1/chat/completions", model.OPENAIAPIHOST)
-	if model.OPENAIAPITYPE == "azure" {
-		url = fmt.Sprintf("%s/openai/deployments/%s/chat/completions?api-version=%s", model.OPENAIAPIHOST, model.AZUREDEPLOYMENTID, model.OPENAIAPIVERSION)
+	// default set to GPT3.5
+	modelStr := openai.GPT3Dot5Turbo
+	modelPtr := &param.Model
+	if modelPtr != nil {
+		modelStr = param.Model.ID
 	}
-
-	reqBody := model.ChatRequest{
-		Model:       m.ID,
-		Messages:    append([]model.Message{{Role: "system", Content: systemPrompt}}, messages...),
-		MaxTokens:   1000,
-		Temperature: temperature,
-		Stream:      true,
+	req := openai.ChatCompletionRequest{
+		Model:     modelStr,
+		MaxTokens: model.OPENAIMAXTOKENS,
+		Messages: param.Messages,
+		Stream: true,
 	}
-	reqBytes, err := json.Marshal(reqBody)
+	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
+		fmt.Printf("ChatCompletionStream error: %v\n", err)
 		return nil, err
 	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	if model.OPENAIAPITYPE == "openai" {
-		if key != "" {
-			req.Header.Set("Authorization", "Bearer "+key)
-		} else {
-			req.Header.Set("Authorization", "Bearer "+model.OPENAIAPIKEY)
-		}
-	}
-	if model.OPENAIAPITYPE == "azure" {
-		if key != "" {
-			req.Header.Set("api-key", key)
-		} else {
-			req.Header.Set("api-key", model.OPENAIAPIKEY)
-		}
-	}
-	if model.OPENAIAPITYPE == "openai" && model.OPENAIORGANIZATION != "" {
-		req.Header.Set("OpenAI-Organization", model.OPENAIORGANIZATION)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode != 200 {
-		defer resp.Body.Close()
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		var result struct {
-			Error *model.OpenAIError `json:"error"`
-		}
-		if err := json.Unmarshal(bodyBytes, &result); err != nil {
-			return nil, fmt.Errorf("OpenAI API returned an error: %s", resp.Status)
-		}
-		if result.Error != nil {
-			return nil, result.Error
-		}
-		return nil, fmt.Errorf("OpenAI API returned an error: %s", resp.Status)
-	}
-
-	return resp, nil
+	//defer stream.Close() // defer after call for stream
+	return stream, nil
 }
