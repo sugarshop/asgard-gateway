@@ -26,7 +26,7 @@ kind: Service
 apiVersion: v1
 metadata:
   namespace: default
-  name: asgard-gateway
+  name: asgard-gateway-svc
   labels:
     app: asgard-gateway
 spec:
@@ -54,6 +54,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: asgard-gateway
+                name: asgard-gateway-svc
                 port:
                   number: 8080
