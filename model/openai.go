@@ -41,10 +41,9 @@ func (e *OpenAIError) Error() string {
 
 type CompletionsReqBody struct {
 	Model        OpenAIModel `json:"model"`
-	SystemPrompt string            `json:"systemPrompt"`
-	Temperature  float64           `json:"temperature"`
-	Key          string            `json:"key"`
 	Messages     []openai.ChatCompletionMessage  `json:"messages"`
+	Key          string            `json:"key"`
+	Temperature  float64           `json:"temperature"`
 }
 
 // LogprobResult represents logprob result of Choice.
