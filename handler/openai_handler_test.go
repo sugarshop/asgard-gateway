@@ -28,7 +28,6 @@ func TestOpenAIHandler_Completions(t *testing.T) {
 	// Create a new HTTP request
 	reqBody := model.CompletionsReqBody{
 		Model: model.OpenAIModel{ID: "gpt-3.5-turbo"},
-		SystemPrompt: model.NEXTPUBLICDEFAULTSYSTEMPROMPT,
 		Temperature: 1,
 		Key: "key",
 		Messages: []openai.ChatCompletionMessage{
