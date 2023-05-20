@@ -12,6 +12,7 @@ func TestCompletion_Save(t *testing.T) {
 		ChatID:    "chat-001",
 		Model:     "gpt-3.5-turbo-0301",
 		Content:   "i love u",
+		Role: "test",
 	}
 	err := compl.Save()
 
