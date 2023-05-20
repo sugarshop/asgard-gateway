@@ -15,5 +15,5 @@ func TestCompletion_Save(t *testing.T) {
 	}
 	err := compl.Save()
 
-	assert.NotNil(t, err)
+	assert.Nil(t, err)
 }
