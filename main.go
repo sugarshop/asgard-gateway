@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/sugarshop/asgard-gateway/db"
 	"github.com/sugarshop/asgard-gateway/handler"
 	"net/http"
 	"os"
@@ -16,6 +17,9 @@ func main() {
 			"message": "pong",
 		})
 	})
+
+	// init db
+	db.Init()
 
 	// register other api
 	handler.Register(engine)
