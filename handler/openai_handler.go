@@ -11,6 +11,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 )
 
 type OpenAIHandler struct {
@@ -37,10 +38,22 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		return fmt.Errorf("StatusCode: %d, Type:%s, Code:%v", apiErr.HTTPStatusCode, apiErr.Type, apiErr.Code)
 	}
 
+	var curCompletion model.Completion
+	ch := make(chan bool)
+
 	gone := c.Stream(func(w io.Writer) bool {
 		response, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
 			fmt.Printf("[Completion]: Stream finished")
+			go func() {
+				if saveErr := curCompletion.Save(); saveErr != nil {
+					fmt.Printf("[Completions]: failed to save completion: %+v", err)
+					ch <- false
+				} else {
+					ch <- true
+				}
+				close(ch)
+			}()
 			return false
 		}
 
@@ -48,6 +61,8 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 			fmt.Printf("[Completion]: Stream error: %v\n", err)
 			return false
 		}
+		// wrap completion.
+		h.constructCompletion(&curCompletion, response)
 
 		jsonBytes, err := json.Marshal(response)
 		if err != nil {
@@ -62,10 +77,58 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		return true
 	})
 	if gone {
+		// client disconnected in middle of stream
 		// do something after client is gone
 		log.Println("client is gone")
 	}
+
+	select {
+	case succ := <- ch:
+		if succ {
+			fmt.Printf("save success")
+		} else {
+			fmt.Printf("save failed")
+		}
+	case <-time.After(10 * time.Second): // 超时时间为10秒
+		fmt.Println("save to db timeout!")
+	}
 	return nil
+}
+
+func (h *OpenAIHandler) constructCompletion(cur *model.Completion, input interface{}) {
+	streamResponse, streamOk := input.(openai.ChatCompletionStreamResponse)
+	completionResponse, completionOk := input.(openai.ChatCompletionResponse)
+	var id string
+	var chatModel string
+	var role string
+	var content string
+	if streamOk {
+		id = streamResponse.ID
+		chatModel = streamResponse.Model
+		if len(streamResponse.Choices) > 0 {
+			role = streamResponse.Choices[0].Delta.Role
+		}
+		content = streamResponse.Choices[0].Delta.Content
+	}
+	if completionOk {
+		id = completionResponse.ID
+		chatModel = completionResponse.Model
+		if len(completionResponse.Choices) > 0 {
+			role = completionResponse.Choices[0].Message.Role
+		}
+		content = completionResponse.Choices[0].Message.Content
+	}
+
+	if len(cur.ChatID) == 0 {
+		cur.ChatID = id
+	}
+	if len(cur.Model) == 0 {
+		cur.Model = chatModel
+	}
+	if len(cur.Role) == 0 {
+		cur.Role = role
+	}
+	cur.Content += content
 }
 
 // OpenAIStream return completion stream of the OpenAIChat
