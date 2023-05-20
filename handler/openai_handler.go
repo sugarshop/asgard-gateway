@@ -11,7 +11,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 )
 
 type OpenAIHandler struct {
@@ -39,21 +38,11 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	}
 
 	var curCompletion model.Completion
-	ch := make(chan bool)
 
 	gone := c.Stream(func(w io.Writer) bool {
 		response, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
-			fmt.Printf("[Completion]: Stream finished")
-			go func() {
-				if saveErr := curCompletion.Save(); saveErr != nil {
-					fmt.Printf("[Completions]: failed to save completion: %+v", err)
-					ch <- false
-				} else {
-					ch <- true
-				}
-				close(ch)
-			}()
+			fmt.Println("[Completion]: Stream finished")
 			return false
 		}
 
@@ -81,17 +70,10 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		// do something after client is gone
 		log.Println("client is gone")
 	}
-
-	select {
-	case succ := <- ch:
-		if succ {
-			fmt.Printf("save success")
-		} else {
-			fmt.Printf("save failed")
-		}
-	case <-time.After(10 * time.Second): // 超时时间为10秒
-		fmt.Println("save to db timeout!")
+	if saveErr := curCompletion.Save(); saveErr != nil {
+		fmt.Printf("[Completions]: failed to save completion: %+v", saveErr)
 	}
+
 	return nil
 }
 
