@@ -70,8 +70,20 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		// do something after client is gone
 		log.Println("client is gone")
 	}
+	reqCompletion := model.Completion{
+		ChatID:    curCompletion.ChatID,
+		Model:     curCompletion.Model,
+	}
+	if len(reqBody.Messages) > 0 {
+		message := reqBody.Messages[len(reqBody.Messages) - 1]
+		reqCompletion.Content = message.Content
+		reqCompletion.Role = message.Role
+	}
+	if saveErr := reqCompletion.Save(); saveErr != nil {
+		fmt.Printf("[Completions]: failed to save req completion: %+v", saveErr)
+	}
 	if saveErr := curCompletion.Save(); saveErr != nil {
-		fmt.Printf("[Completions]: failed to save completion: %+v", saveErr)
+		fmt.Printf("[Completions]: failed to save cur completion: %+v", saveErr)
 	}
 
 	return nil
@@ -115,7 +127,7 @@ func (h *OpenAIHandler) constructCompletion(cur *model.Completion, input interfa
 
 // OpenAIStream return completion stream of the OpenAIChat
 func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, *openai.APIError) {
-	client := openai.NewClient(param.Key)
+	client := openai.NewClient(model.OPENAIAPIKEY)
 	ctx := context.Background()
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
