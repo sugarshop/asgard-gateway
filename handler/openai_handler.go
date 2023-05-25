@@ -127,7 +127,7 @@ func (h *OpenAIHandler) constructCompletion(cur *model.Completion, input interfa
 
 // OpenAIStream return completion stream of the OpenAIChat
 func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, *openai.APIError) {
-	client := openai.NewClient(model.OPENAIAPIKEY)
+	client := openai.NewClient(param.Key)
 	ctx := context.Background()
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
@@ -141,12 +141,20 @@ func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReq
 	if modelPtr != nil {
 		modelStr = param.Model.ID
 	}
+	message := make([]openai.ChatCompletionMessage, 0)
+	if len(param.Messages) >= 5 {
+		message = append([]openai.ChatCompletionMessage{param.Messages[0]}, param.Messages[len(param.Messages)-3:]...)
+	} else {
+		message = param.Messages
+	}
+	log.Printf("model: %v message length:%d", param.Model, len(param.Messages))
 	req := openai.ChatCompletionRequest{
 		Model:     modelStr,
 		MaxTokens: model.OPENAIMAXTOKENS,
-		Messages: param.Messages,
+		Messages: message,
 		Stream: true,
 	}
+
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		apiErr := buildError(err)
