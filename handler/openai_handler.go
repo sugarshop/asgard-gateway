@@ -42,7 +42,7 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	gone := c.Stream(func(w io.Writer) bool {
 		response, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
-			fmt.Println("[Completion]: Stream finished")
+			//fmt.Println("[Completion]: Stream finished")
 			return false
 		}
 
