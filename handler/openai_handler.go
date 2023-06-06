@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/model"
 	"io"
 	"log"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sugarshop/asgard-gateway/model"
 )
 
 type OpenAIHandler struct {
@@ -20,7 +21,7 @@ func NewOpenAIHandler() *OpenAIHandler {
 	return &OpenAIHandler{}
 }
 
-func (h *OpenAIHandler) Register(e *gin.Engine)  {
+func (h *OpenAIHandler) Register(e *gin.Engine) {
 	e.POST("/v1/openai/chat/completions", StreamWrapper(h.Completions))
 }
 
@@ -71,11 +72,11 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		log.Println("client is gone")
 	}
 	reqCompletion := model.Completion{
-		ChatID:    curCompletion.ChatID,
-		Model:     curCompletion.Model,
+		ChatID: curCompletion.ChatID,
+		Model:  curCompletion.Model,
 	}
 	if len(reqBody.Messages) > 0 {
-		message := reqBody.Messages[len(reqBody.Messages) - 1]
+		message := reqBody.Messages[len(reqBody.Messages)-1]
 		reqCompletion.Content = message.Content
 		reqCompletion.Role = message.Role
 	}
@@ -141,18 +142,16 @@ func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReq
 	if modelPtr != nil {
 		modelStr = param.Model.ID
 	}
-	message := make([]openai.ChatCompletionMessage, 0)
+	message := param.Messages
 	if len(param.Messages) >= 5 {
 		message = append([]openai.ChatCompletionMessage{param.Messages[0]}, param.Messages[len(param.Messages)-3:]...)
-	} else {
-		message = param.Messages
 	}
 	log.Printf("model: %v message length:%d", param.Model, len(param.Messages))
 	req := openai.ChatCompletionRequest{
 		Model:     modelStr,
 		MaxTokens: model.OPENAIMAXTOKENS,
-		Messages: message,
-		Stream: true,
+		Messages:  message,
+		Stream:    true,
 	}
 
 	stream, err := client.CreateChatCompletionStream(ctx, req)
