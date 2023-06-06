@@ -12,7 +12,7 @@ type WebHookService struct {
 
 var (
 	webhookService *WebHookService
-	webhookOnce    *sync.Once
+	webhookOnce    sync.Once
 )
 
 func WebHookServiceInstance() *WebHookService {
@@ -24,5 +24,9 @@ func WebHookServiceInstance() *WebHookService {
 
 // ListenLemonSqueezy Listen and deal with the lemon squeezy webhook request.
 func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, param *model.LemonSqueezyRequest) error {
+	if param.Meta.EventName == model.LemonSqueezyEventName_OrderCreated {
+		// nil means order_created success
+		return nil
+	}
 	return nil
 }

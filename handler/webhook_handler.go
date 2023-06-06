@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sugarshop/asgard-gateway/model"
-	"net/http"
+	"github.com/sugarshop/asgard-gateway/service"
+	"github.com/sugarshop/asgard-gateway/util"
 )
 
 type WebhookHandler struct {
@@ -13,18 +17,21 @@ func NewWebhookHandler() *WebhookHandler {
 	return &WebhookHandler{}
 }
 
-func (h *WebhookHandler) Register(e *gin.Engine)  {
-	e.POST("/webhook/lemonsqueezy", JSONWrapper(h.Lemonsqueezy))
+func (h *WebhookHandler) Register(e *gin.Engine) {
+	e.POST("/webhook/lemonsqueezy", JSONWrapper(h.LemonSqueezy))
 }
 
-func (h *WebhookHandler) Lemonsqueezy(c *gin.Context) (interface{}, error) {
-	// todo fixme
-	var reqBody model.CompletionsReqBody
+func (h *WebhookHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
+	var reqBody model.LemonSqueezyRequest
+	ctx := util.RPCContext(c)
 	// bind json to reqBody
 	if err := c.BindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return nil, err
 	}
-
-	return nil, nil
+	if err := service.WebHookServiceInstance().ListenLemonSqueezy(ctx, &reqBody); err != nil {
+		fmt.Printf("[LemonSqueezy]: ListenLemonSqueezy err:%s\n", err)
+		return nil, err
+	}
+	return map[string]interface{}{}, nil
 }

@@ -59,6 +59,11 @@ type RelationshipData struct {
 
 // RelationshipLinks RelationshipLinks
 type RelationshipLinks struct {
+	Links RelationshipLinksItem `json:"links"`
+}
+
+// RelationshipLinksItem RelationshipLinksItem
+type RelationshipLinksItem struct {
 	Self    string `json:"self"`
 	Related string `json:"related"`
 }
