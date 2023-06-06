@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/sugarshop/asgard-gateway/db"
 	"github.com/sugarshop/asgard-gateway/handler"
@@ -20,9 +21,11 @@ func main() {
 
 	// init db
 	db.Init()
+	fmt.Println("[main]: db init success")
 
 	// register other api
 	handler.Register(engine)
+	fmt.Println("[main]: handler register success")
 
 	// Initializing the server in a goroutine so that
 	// it won't block the graceful shutdown handling below

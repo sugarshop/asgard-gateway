@@ -5,13 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/model"
 	"io"
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sugarshop/asgard-gateway/model"
 )
 
 type OpenAIHandler struct {
@@ -21,7 +21,7 @@ func NewOpenAIHandler() *OpenAIHandler {
 	return &OpenAIHandler{}
 }
 
-func (h *OpenAIHandler) Register(e *gin.Engine)  {
+func (h *OpenAIHandler) Register(e *gin.Engine) {
 	e.POST("/v1/openai/chat/completions", StreamWrapper(h.Completions))
 }
 
@@ -39,21 +39,11 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	}
 
 	var curCompletion model.Completion
-	ch := make(chan bool)
 
 	gone := c.Stream(func(w io.Writer) bool {
 		response, err := stream.Recv()
 		if errors.Is(err, io.EOF) {
-			fmt.Printf("[Completion]: Stream finished")
-			go func() {
-				if saveErr := curCompletion.Save(); saveErr != nil {
-					fmt.Printf("[Completions]: failed to save completion: %+v", err)
-					ch <- false
-				} else {
-					ch <- true
-				}
-				close(ch)
-			}()
+			//fmt.Println("[Completion]: Stream finished")
 			return false
 		}
 
@@ -81,17 +71,22 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		// do something after client is gone
 		log.Println("client is gone")
 	}
-
-	select {
-	case succ := <- ch:
-		if succ {
-			fmt.Printf("save success")
-		} else {
-			fmt.Printf("save failed")
-		}
-	case <-time.After(10 * time.Second): // 超时时间为10秒
-		fmt.Println("save to db timeout!")
+	reqCompletion := model.Completion{
+		ChatID: curCompletion.ChatID,
+		Model:  curCompletion.Model,
 	}
+	if len(reqBody.Messages) > 0 {
+		message := reqBody.Messages[len(reqBody.Messages)-1]
+		reqCompletion.Content = message.Content
+		reqCompletion.Role = message.Role
+	}
+	if saveErr := reqCompletion.Save(); saveErr != nil {
+		fmt.Printf("[Completions]: failed to save req completion: %+v", saveErr)
+	}
+	if saveErr := curCompletion.Save(); saveErr != nil {
+		fmt.Printf("[Completions]: failed to save cur completion: %+v", saveErr)
+	}
+
 	return nil
 }
 
@@ -147,12 +142,18 @@ func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReq
 	if modelPtr != nil {
 		modelStr = param.Model.ID
 	}
+	message := param.Messages
+	if len(param.Messages) >= 5 {
+		message = append([]openai.ChatCompletionMessage{param.Messages[0]}, param.Messages[len(param.Messages)-3:]...)
+	}
+	log.Printf("model: %v message length:%d", param.Model, len(param.Messages))
 	req := openai.ChatCompletionRequest{
 		Model:     modelStr,
 		MaxTokens: model.OPENAIMAXTOKENS,
-		Messages: param.Messages,
-		Stream: true,
+		Messages:  message,
+		Stream:    true,
 	}
+
 	stream, err := client.CreateChatCompletionStream(ctx, req)
 	if err != nil {
 		apiErr := buildError(err)
