@@ -28,5 +28,9 @@ func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, param *model.Le
 		// nil means order_created success
 		return nil
 	}
+	if param.Meta.EventName == model.LemonSqueezyEventName_LicenseKeyCreated {
+		// nil means licenseKey_created success
+		return nil
+	}
 	return nil
 }
