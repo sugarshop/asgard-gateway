@@ -2,10 +2,10 @@ package util
 
 import (
 	"fmt"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sugarshop/asgard-gateway/model"
-	"strconv"
-	"strings"
 )
 
 // String 获取string格式参数
@@ -141,14 +141,14 @@ func PositiveInt64(c *gin.Context, key string) (int64, error) {
 	return v, nil
 }
 
-func isApp(c *gin.Context) bool {
-	return strings.Contains(c.GetHeader("User-Agent"), "is_app")
-}
-
-func isMiniProgram(c *gin.Context) bool {
-	// 如果包含 micro messenger，则代表是微信内，包含 header 则代表是小程序的请求
-	if strings.Contains(c.GetHeader("User-Agent"), "MicroMessenger") && strings.Contains(c.GetHeader("Is-WebApp"), "weixin-mini-program") {
-		return true
-	}
-	return false
-}
+//func isApp(c *gin.Context) bool {
+//	return strings.Contains(c.GetHeader("User-Agent"), "is_app")
+//}
+//
+//func isMiniProgram(c *gin.Context) bool {
+//	// 如果包含 micro messenger，则代表是微信内，包含 header 则代表是小程序的请求
+//	if strings.Contains(c.GetHeader("User-Agent"), "MicroMessenger") && strings.Contains(c.GetHeader("Is-WebApp"), "weixin-mini-program") {
+//		return true
+//	}
+//	return false
+//}
