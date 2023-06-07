@@ -2,18 +2,20 @@ package model
 
 import (
 	"fmt"
+
 	"github.com/sashabaranov/go-openai"
 )
 
 const (
-	OPENAIAPIHOST = "https://api.openai.com"
-	DEFAULTTEMPERATURE = 1
+	OPENAIAPIHOST                 = "https://api.openai.com"
+	DEFAULTTEMPERATURE            = 1
 	NEXTPUBLICDEFAULTSYSTEMPROMPT = "You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown."
-	OPENAIAPITYPE = "openai"
-	OPENAIAPIVERSION = "2023-03-15-preview"
-	OPENAIORGANIZATION = ""
-	AZUREDEPLOYMENTID = ""
-	OPENAIMAXTOKENS = 1000
+	OPENAIAPITYPE                 = "openai"
+	OPENAIAPIVERSION              = "2023-03-15-preview"
+	OPENAIORGANIZATION            = ""
+	OPENAIKEY                     = "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"
+	AZUREDEPLOYMENTID             = ""
+	OPENAIMAXTOKENS               = 1000
 )
 
 type OpenAIModel struct {
@@ -21,11 +23,11 @@ type OpenAIModel struct {
 }
 
 type ChatRequest struct {
-	Model      string    `json:"model,omitempty"`
-	Messages   []openai.ChatCompletionMessage `json:"messages"`
-	MaxTokens  int       `json:"max_tokens,omitempty"`
-	Temperature float64  `json:"temperature"`
-	Stream     bool      `json:"stream"`
+	Model       string                         `json:"model,omitempty"`
+	Messages    []openai.ChatCompletionMessage `json:"messages"`
+	MaxTokens   int                            `json:"max_tokens,omitempty"`
+	Temperature float64                        `json:"temperature"`
+	Stream      bool                           `json:"stream"`
 }
 
 type OpenAIError struct {
@@ -40,10 +42,10 @@ func (e *OpenAIError) Error() string {
 }
 
 type CompletionsReqBody struct {
-	Model        OpenAIModel `json:"model"`
-	Messages     []openai.ChatCompletionMessage  `json:"messages"`
-	Key          string            `json:"key"`
-	Temperature  float64           `json:"temperature"`
+	Model       OpenAIModel                    `json:"model"`
+	Messages    []openai.ChatCompletionMessage `json:"messages"`
+	Key         string                         `json:"key"`
+	Temperature float64                        `json:"temperature"`
 }
 
 // LogprobResult represents logprob result of Choice.

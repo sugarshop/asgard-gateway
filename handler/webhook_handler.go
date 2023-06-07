@@ -22,6 +22,9 @@ func (h *WebhookHandler) Register(e *gin.Engine) {
 }
 
 func (h *WebhookHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
+
+	// todo verify X-Signature in header to assure request is from LemonSqueezy
+
 	var reqBody model.LemonSqueezyRequest
 	ctx := util.RPCContext(c)
 	// bind json to reqBody

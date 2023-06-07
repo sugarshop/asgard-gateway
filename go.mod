@@ -9,10 +9,11 @@ require (
 	github.com/nedpals/postgrest-go v0.1.3
 	github.com/nedpals/supabase-go v0.2.0
 	github.com/sashabaranov/go-openai v1.9.3
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
+	github.com/NdoleStudio/lemonsqueezy-go v0.0.11 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/choleraehyq/pid v0.0.16 // indirect
