@@ -3,6 +3,7 @@ module github.com/sugarshop/asgard-gateway
 go 1.18
 
 require (
+	github.com/NdoleStudio/lemonsqueezy-go v0.0.11
 	github.com/apache/thrift v0.13.0
 	github.com/cloudwego/kitex v0.5.2
 	github.com/gin-gonic/gin v1.9.0
@@ -13,7 +14,6 @@ require (
 )
 
 require (
-	github.com/NdoleStudio/lemonsqueezy-go v0.0.11 // indirect
 	github.com/bytedance/sonic v1.8.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/choleraehyq/pid v0.0.16 // indirect
