@@ -35,7 +35,8 @@ func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, param *model.Le
 		// nil means licenseKey_created success
 		return nil
 	}
-	err := fmt.Errorf("listen failed, event not found, %s", param)
+
+	err := fmt.Errorf("listen failed, event not found, %+v", param)
 	log.Println(err)
 	return err
 }
