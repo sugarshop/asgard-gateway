@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"sync"
 
 	"github.com/sugarshop/asgard-gateway/model"
@@ -24,6 +26,7 @@ func WebHookServiceInstance() *WebHookService {
 
 // ListenLemonSqueezy Listen and deal with the lemon squeezy webhook request.
 func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, param *model.LemonSqueezyRequest) error {
+	// todo verfify test_mode
 	if param.Meta.EventName == model.LemonSqueezyEventName_OrderCreated {
 		// nil means order_created success
 		return nil
@@ -32,5 +35,7 @@ func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, param *model.Le
 		// nil means licenseKey_created success
 		return nil
 	}
-	return nil
+	err := fmt.Errorf("listen failed, event not found, %s", param)
+	log.Println(err)
+	return err
 }
