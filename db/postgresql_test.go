@@ -1,12 +1,13 @@
 package db
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestInit(t *testing.T) {
-	Init()
+func TestPostgreSqlInit(t *testing.T) {
+	PostgreSqlInit()
 	res := CompletionDB()
 	assert.NotNil(t, res)
 }
