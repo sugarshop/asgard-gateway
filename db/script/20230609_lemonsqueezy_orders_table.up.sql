@@ -3,6 +3,7 @@ use orders;
 CREATE TABLE IF NOT EXISTS lemonsqueezy_orders
 (
     `id`                bigint(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'main key',
+    `trade_order_id`    varchar(255)        NOT NULL DEFAULT '' COMMENT 'trade order id for a user payment transaction',
     `uid`               varchar(255)        NOT NULL DEFAULT '' COMMENT 'user id, format: clerk_xxxxx, auth0_xxxxx',
     `store_id`          bigint(20)          NOT NULL DEFAULT 0 COMMENT 'The ID of the store this order belongs to.',
     `identifier`        varchar(255)        NOT NULL DEFAULT 0 COMMENT 'The unique identifier (UUID) for this order',
@@ -16,6 +17,7 @@ CREATE TABLE IF NOT EXISTS lemonsqueezy_orders
     `order_create_time` datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'An ISO-8601 formatted date-time string indicating when the order was created.',
     `created_at`        datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        datetime            NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_trade_order_id` (`trade_order_id`)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
