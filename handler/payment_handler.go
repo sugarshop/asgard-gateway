@@ -16,7 +16,7 @@ func NewPaymentHandler() *PaymentHandler {
 }
 
 func (h *PaymentHandler) Register(e *gin.Engine) {
-	e.POST("/v1/payment/lemonsqueezy/checkout", JSONWrapper(h.LemonSqueezy))
+	e.GET("/v1/payment/lemonsqueezy/checkout", JSONWrapper(h.LemonSqueezy))
 }
 
 // LemonSqueezy create lemonsqueezy checkout link

@@ -61,7 +61,7 @@ func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*
 		VariantID:       model.LemonSqueezy_Associated_VariantID,
 	})
 
-	if response.HTTPResponse.StatusCode != http.StatusOK {
+	if response.HTTPResponse.StatusCode != http.StatusCreated {
 		log.Println("[CreateCheckout]: err:%+v")
 		return nil, err
 	}
