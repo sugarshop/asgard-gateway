@@ -7,9 +7,9 @@ import (
 	"github.com/sugarshop/env"
 )
 
-func TestPostgreSqlInit(t *testing.T) {
+func TestMysqlInit(t *testing.T) {
 	env.LoadGlobalEnv("../conf/test.json")
-	PostgreSqlInit()
-	res := CompletionDB()
-	assert.NotNil(t, res)
+	MysqlInit()
+	db := SugarShopDB()
+	assert.NotNil(t, db)
 }

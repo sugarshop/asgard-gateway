@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: default
+  name: asgard-gateway-svc
+  labels:
+    app: asgard-gateway
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8080
+  selector:
+    app: asgard-gateway
+  type: ClusterIP

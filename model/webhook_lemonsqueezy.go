@@ -88,12 +88,12 @@ type OrderAttributes struct {
 	DiscountTotalUsd       int64             `json:"discount_total_usd"`       // A positive integer in cents representing the total discount value applied to the order in USD.
 	TaxUsd                 float64           `json:"tax_usd"`                  // A positive integer in cents representing the tax applied to the order in USD.
 	TotalUsd               int64             `json:"total_usd"`                // A positive integer in cents representing the total cost of the order in USD.
-	TaxName                interface{}       `json:"tax_name"`                 // If tax is applied to the order, this will be the name of the tax rate (e.g. VAT, Sales Tax, etc).
+	TaxName                string            `json:"tax_name"`                 // If tax is applied to the order, this will be the name of the tax rate (e.g. VAT, Sales Tax, etc).
 	TaxRate                string            `json:"tax_rate"`                 // If tax is applied to the order, this will be the rate of tax as a decimal percentage.
 	Status                 string            `json:"status"`                   // The status of the order. One of pending, failed, paid, refunded.
 	StatusFormatted        string            `json:"status_formatted"`         // The formatted status of the order.
-	Refunded               interface{}       `json:"refunded"`                 // Has the value true if the order has been refunded.
-	RefundedAt             interface{}       `json:"refunded_at"`              // If the order has been refunded, this will be an ISO-8601 formatted date-time string indicating when the order was refunded.
+	Refunded               bool              `json:"refunded"`                 // Has the value true if the order has been refunded.
+	RefundedAt             time.Time         `json:"refunded_at"`              // If the order has been refunded, this will be an ISO-8601 formatted date-time string indicating when the order was refunded.
 	SubtotalFormatted      string            `json:"subtotal_formatted"`       // A human-readable string representing the subtotal of the order in the order currency (e.g. $9.99).
 	DiscountTotalFormatted string            `json:"discount_total_formatted"` // A human-readable string representing the total discount value applied to the order in the order currency (e.g. $9.99).
 	TaxFormatted           string            `json:"tax_formatted"`            // A human-readable string representing the tax applied to the order in the order currency (e.g. $9.99).

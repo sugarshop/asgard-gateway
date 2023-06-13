@@ -12,13 +12,21 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sugarshop/asgard-gateway/model"
+	"github.com/sugarshop/env"
 )
 
 type OpenAIHandler struct {
+	ApiKey string
 }
 
 func NewOpenAIHandler() *OpenAIHandler {
-	return &OpenAIHandler{}
+	apiKey, ok := env.GlobalEnv().Get("OPENAIAPIKEY")
+	if !ok {
+		log.Println("no OPENAIAPIKEY env set")
+	}
+	return &OpenAIHandler{
+		ApiKey: apiKey,
+	}
 }
 
 func (h *OpenAIHandler) Register(e *gin.Engine) {
@@ -128,7 +136,7 @@ func (h *OpenAIHandler) constructCompletion(cur *model.Completion, input interfa
 
 // OpenAIStream return completion stream of the OpenAIChat
 func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, *openai.APIError) {
-	client := openai.NewClient(param.Key)
+	client := openai.NewClient(h.ApiKey)
 	ctx := context.Background()
 	c.Writer.Header().Set("Content-Type", "text/event-stream")
 	c.Writer.Header().Set("Cache-Control", "no-cache")
