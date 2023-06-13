@@ -2,6 +2,11 @@ package model
 
 import "time"
 
+const (
+	LemonSqueezy_StoreID              = "28683"
+	LemonSqueezy_Associated_VariantID = "82026"
+)
+
 type LemonSqueezyOrder struct {
 	ID              uint64    `gorm:"column:id"`
 	OrderID         uint64    `gorm:"column:order_id"`
