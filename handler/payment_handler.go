@@ -21,6 +21,7 @@ func (h *PaymentHandler) Register(e *gin.Engine) {
 
 // LemonSqueezy create lemonsqueezy checkout link
 func (s *PaymentHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
+	// todo: 防止高频攻击，需要进行限频.
 	ctx := context.Background()
 	link, err := service.LemonSqueezyServiceInstance().CreateCheckoutLink(ctx, "uiduiduid")
 	if err != nil {

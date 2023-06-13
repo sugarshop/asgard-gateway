@@ -4,13 +4,17 @@ import (
 	"log"
 	"time"
 
+	"github.com/sugarshop/env"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 // MysqlInit 数据库初始化连接
 func MysqlInit() {
-	dsn := "94p2ws6zyeusmkkmiw94:pscale_pw_fQQyJtbCQZbp224O7ARJ5FYKxo4BWLcuTm1uURzr6rf@tcp(aws.connect.psdb.cloud)/sugarshop?tls=true"
+	dsn, ok := env.GlobalEnv().Get("PLANETSCALEDB")
+	if !ok {
+		panic("no PLANETSCALEDB env set")
+	}
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic(err)
@@ -26,7 +30,7 @@ func MysqlInit() {
 	sqlDB.SetMaxOpenConns(100)
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
-	log.Println("connect to db APIGATEWAYDB db success")
+	log.Println("connect to db PLANETSCALEDB db success")
 	sugarshopDB = db
 }
 

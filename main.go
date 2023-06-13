@@ -1,17 +1,28 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/sugarshop/asgard-gateway/db"
-	"github.com/sugarshop/asgard-gateway/handler"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sugarshop/asgard-gateway/db"
+	"github.com/sugarshop/asgard-gateway/handler"
+	"github.com/sugarshop/env"
 )
 
 func main() {
+	// start config
+	var conf string
+	flag.StringVar(&conf, "conf", "conf/test.json", "specify the load config file")
+	flag.Parse()
+
+	// load env configuration
+	env.LoadGlobalEnv(conf)
+
 	engine := gin.New()
 	engine.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

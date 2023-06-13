@@ -7,13 +7,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/sugarshop/asgard-gateway/model"
+	"github.com/sugarshop/env"
 	lemonsqueezy "github.com/sugarshop/lemonsqueezy-go"
 )
 
 // LemonSqueezyService lemon squeezy service
 type LemonSqueezyService struct {
-	Client *lemonsqueezy.Client
+	Client              *lemonsqueezy.Client
+	StoreID             string
+	AssociatedVariantID string
 }
 
 var (
@@ -23,9 +25,23 @@ var (
 
 // LemonSqueezyServiceInstance lemon squeezy service instance
 func LemonSqueezyServiceInstance() *LemonSqueezyService {
+	storeID, ok := env.GlobalEnv().Get("LemonSqueezyStoreID")
+	if !ok {
+		log.Println("no LemonSqueezyStoreID env set")
+	}
+	variantID, ok := env.GlobalEnv().Get("LemonSqueezyAssociatedVariantID")
+	if !ok {
+		log.Println("no LemonSqueezyAssociatedVariantID env set")
+	}
+	apiKey, ok := env.GlobalEnv().Get("LemonSqueezyAPIKey")
+	if !ok {
+		log.Println("no LemonSqueezyAPIKey env set")
+	}
 	lemonSqueezyOnce.Do(func() {
 		lemonSqueezyService = &LemonSqueezyService{
-			Client: lemonsqueezy.New(lemonsqueezy.WithAPIKey(model.LemonSqueezyAPIKey)),
+			Client:              lemonsqueezy.New(lemonsqueezy.WithAPIKey(apiKey)),
+			StoreID:             storeID,
+			AssociatedVariantID: variantID,
 		}
 	})
 	return lemonSqueezyService
@@ -57,8 +73,8 @@ func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*
 		Logo:            true,
 		CustomData:      data,
 		ExpiresAt:       expireDate,
-		StoreID:         model.LemonSqueezy_StoreID,
-		VariantID:       model.LemonSqueezy_Associated_VariantID,
+		StoreID:         s.StoreID,
+		VariantID:       s.AssociatedVariantID,
 	})
 
 	if response.HTTPResponse.StatusCode != http.StatusCreated {

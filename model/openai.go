@@ -7,15 +7,7 @@ import (
 )
 
 const (
-	OPENAIAPIHOST                 = "https://api.openai.com"
-	DEFAULTTEMPERATURE            = 1
-	NEXTPUBLICDEFAULTSYSTEMPROMPT = "You are ChatGPT, a large language model trained by OpenAI. Follow the user's instructions carefully. Respond using markdown."
-	OPENAIAPITYPE                 = "openai"
-	OPENAIAPIVERSION              = "2023-03-15-preview"
-	OPENAIORGANIZATION            = ""
-	OPENAIKEY                     = "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"
-	AZUREDEPLOYMENTID             = ""
-	OPENAIMAXTOKENS               = 1000
+	OPENAIMAXTOKENS = 1000
 )
 
 type OpenAIModel struct {
