@@ -3,6 +3,13 @@ name: CI
 env:
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
   REPO_NAME: ${{ github.event.repository.name }}
+  GOPRIVATE: github.com/sugarshop/*
+  PLANETSCALEDB: ${{ secrets.PLANETSCALEDB }}
+  SUPABASEKEY: ${{ secrets.SUPABASEKEY }}
+  SUPABASEURL: ${{ secrets.SUPABASEURL }}
+  LEMONSQUEEZYAPIKEY: ${{ secrets.LEMONSQUEEZYAPIKEY }}
+  LEMONSQUEEZYASSOCIATEDVARIANTID: ${{ secrets.LEMONSQUEEZYASSOCIATEDVARIANTID }}
+  LEMONSQUEEZYSTOREID: ${{ secrets.LEMONSQUEEZYSTOREID }}
 
 on:
   push:
@@ -17,6 +24,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+    - run: git config --global url.https://${{ secrets.PAT }}@github.com/.insteadOf https://github.com/
     - name: Checkout
       uses: actions/checkout@v3
       with:
@@ -54,6 +62,7 @@ jobs:
   ut:
     runs-on: ubuntu-latest
     steps:
+    - run: git config --global url.https://${{ secrets.PAT }}@github.com/.insteadOf https://github.com/
     - name: Checkout
       uses: actions/checkout@v3
       with:
@@ -73,6 +82,7 @@ jobs:
     - name: Install dependencies
       working-directory: env.REPO_NAME
       run: |
+        export GOPRIVATE=github.com/sugarshop/*
         go mod download
         go install github.com/cloudwego/kitex/tool/cmd/kitex@v0.5.2
         go install github.com/cloudwego/thriftgo@v0.1.2

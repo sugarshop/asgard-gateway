@@ -25,17 +25,17 @@ var (
 
 // LemonSqueezyServiceInstance lemon squeezy service instance
 func LemonSqueezyServiceInstance() *LemonSqueezyService {
-	storeID, ok := env.GlobalEnv().Get("LemonSqueezyStoreID")
+	storeID, ok := env.GlobalEnv().Get("LEMONSQUEEZYSTOREID")
 	if !ok {
-		log.Println("no LemonSqueezyStoreID env set")
+		log.Println("no LEMONSQUEEZYSTOREID env set")
 	}
-	variantID, ok := env.GlobalEnv().Get("LemonSqueezyAssociatedVariantID")
+	variantID, ok := env.GlobalEnv().Get("LEMONSQUEEZYASSOCIATEDVARIANTID")
 	if !ok {
-		log.Println("no LemonSqueezyAssociatedVariantID env set")
+		log.Println("no LEMONSQUEEZYASSOCIATEDVARIANTID env set")
 	}
-	apiKey, ok := env.GlobalEnv().Get("LemonSqueezyAPIKey")
+	apiKey, ok := env.GlobalEnv().Get("LEMONSQUEEZYAPIKEY")
 	if !ok {
-		log.Println("no LemonSqueezyAPIKey env set")
+		log.Println("no LEMONSQUEEZYAPIKEY env set")
 	}
 	lemonSqueezyOnce.Do(func() {
 		lemonSqueezyService = &LemonSqueezyService{
@@ -51,7 +51,7 @@ func LemonSqueezyServiceInstance() *LemonSqueezyService {
 func (s *LemonSqueezyService) ListCustomers(ctx context.Context) (*lemonsqueezy.CustomersApiResponse, error) {
 	customerApiResponse, response, err := s.Client.Customers.List(ctx)
 	if response.HTTPResponse.StatusCode != http.StatusOK {
-		log.Println("[ListCustomers]: err:%+v")
+		log.Println("[ListCustomers]: err:", err)
 		return nil, err
 	}
 	return customerApiResponse, err
@@ -78,7 +78,7 @@ func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*
 	})
 
 	if response.HTTPResponse.StatusCode != http.StatusCreated {
-		log.Println("[CreateCheckout]: err:%+v")
+		log.Println("[CreateCheckout]: err", err)
 		return nil, err
 	}
 	return checkoutApiResponse, nil
