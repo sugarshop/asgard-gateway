@@ -2,9 +2,13 @@ package handler
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sugarshop/asgard-gateway/model"
 	"github.com/sugarshop/asgard-gateway/service"
+	"github.com/sugarshop/asgard-gateway/util"
 )
 
 type PaymentHandler struct {
@@ -17,6 +21,7 @@ func NewPaymentHandler() *PaymentHandler {
 
 func (h *PaymentHandler) Register(e *gin.Engine) {
 	e.GET("/v1/payment/lemonsqueezy/checkout", JSONWrapper(h.LemonSqueezy))
+	e.POST("/v1/payment/lemonsqueezy/webhook", JSONWrapper(h.WebHook))
 }
 
 // LemonSqueezy create lemonsqueezy checkout link
@@ -30,4 +35,21 @@ func (s *PaymentHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
 	return map[string]interface{}{
 		"link": link,
 	}, nil
+}
+
+func (h *PaymentHandler) WebHook(c *gin.Context) (interface{}, error) {
+	// todo verify X-Signature in header to assure request is from LemonSqueezy
+
+	var reqBody model.LemonSqueezyRequest
+	ctx := util.RPCContext(c)
+	// bind json to reqBody
+	if err := c.BindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return nil, err
+	}
+	if err := service.WebHookServiceInstance().ListenLemonSqueezy(ctx, &reqBody); err != nil {
+		fmt.Printf("[WebHook]: ListenLemonSqueezy err:%s\n", err)
+		return nil, err
+	}
+	return map[string]interface{}{}, nil
 }
