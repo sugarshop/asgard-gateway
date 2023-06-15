@@ -8,6 +8,7 @@ import (
 
 	"github.com/sugarshop/asgard-gateway/model"
 	"github.com/sugarshop/asgard-gateway/remote"
+	lemonsqueezy "github.com/sugarshop/lemonsqueezy-go"
 )
 
 type WebHookService struct {
@@ -26,20 +27,24 @@ func WebHookServiceInstance() *WebHookService {
 }
 
 // ListenLemonSqueezy Listen and deal with the lemon squeezy webhook request.
-func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, xSignature string, param *model.LemonSqueezyRequest, rawBody []byte) error {
+func (s *WebHookService) ListenLemonSqueezy(ctx context.Context, xSignature string, param *lemonsqueezy.WebhookRequest, rawBody []byte) error {
 	// verify x-signature
 	if err := remote.LemonSqueezyServiceInstance().Verify(ctx, xSignature, rawBody); err != nil {
 		log.Println("[ListenLemonSqueezy]: Verify err: ", err)
 		return err
 	}
-
-	// verify event
-	if param.Meta.EventName == model.LemonSqueezyEventName_OrderCreated {
+	// save order
+	if param.Meta.EventName == string(model.LemonSqueezyEventName_OrderCreated) {
+		if err := LemonSqueezyServiceInstance().OrderCreatedEvent(ctx, param); err != nil {
+			log.Println("[ListenLemonSqueezy]: OrderCreatedEvent err: ", err)
+			return err
+		}
 		// nil means order_created success
 		return nil
 	}
-	if param.Meta.EventName == model.LemonSqueezyEventName_LicenseKeyCreated {
+	if param.Meta.EventName == string(model.LemonSqueezyEventName_LicenseKeyCreated) {
 		// nil means licenseKey_created success
+		// todo save licenseKey record.
 		return nil
 	}
 

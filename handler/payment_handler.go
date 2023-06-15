@@ -9,9 +9,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sugarshop/asgard-gateway/model"
 	"github.com/sugarshop/asgard-gateway/service"
 	"github.com/sugarshop/asgard-gateway/util"
+	lemonsqueezy "github.com/sugarshop/lemonsqueezy-go"
 )
 
 type PaymentHandler struct {
@@ -41,7 +41,7 @@ func (s *PaymentHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
 }
 
 func (h *PaymentHandler) WebHook(c *gin.Context) (interface{}, error) {
-	var reqBody model.LemonSqueezyRequest
+	var reqBody lemonsqueezy.WebhookRequest
 	ctx := util.RPCContext(c)
 	// bind json to reqBody
 	rawBody, err := ioutil.ReadAll(c.Request.Body)
