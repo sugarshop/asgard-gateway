@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -38,16 +41,22 @@ func (s *PaymentHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
 }
 
 func (h *PaymentHandler) WebHook(c *gin.Context) (interface{}, error) {
-	// todo verify X-Signature in header to assure request is from LemonSqueezy
-
 	var reqBody model.LemonSqueezyRequest
 	ctx := util.RPCContext(c)
 	// bind json to reqBody
+	rawBody, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Println("[WebHook]: ioutil.ReadAll err: ", err)
+		return nil, err
+	}
+	// rewrite data into body, ioutil.ReadAll will clear data in c.Request.Body
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rawBody))
 	if err := c.BindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return nil, err
 	}
-	if err := service.WebHookServiceInstance().ListenLemonSqueezy(ctx, &reqBody); err != nil {
+	signature := c.GetHeader("X-Signature")
+	if err := service.WebHookServiceInstance().ListenLemonSqueezy(ctx, signature, &reqBody, rawBody); err != nil {
 		fmt.Printf("[WebHook]: ListenLemonSqueezy err:%s\n", err)
 		return nil, err
 	}

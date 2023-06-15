@@ -83,3 +83,9 @@ func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*
 	}
 	return checkoutApiResponse, nil
 }
+
+// Verify verify if webhook is from lemonsqueezy
+func (s *LemonSqueezyService) Verify(ctx context.Context, signature string, body []byte) error {
+	s.Client.Webhooks.Verify(ctx, signature, body)
+	return nil
+}

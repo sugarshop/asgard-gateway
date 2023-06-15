@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/sugarshop/asgard-gateway/remote"
-
 	lemonsqueezy "github.com/sugarshop/lemonsqueezy-go"
 )
 
