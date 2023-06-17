@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sugarshop/asgard-gateway/db"
 	"github.com/sugarshop/asgard-gateway/handler"
+	"github.com/sugarshop/asgard-gateway/mw"
 	"github.com/sugarshop/env"
 )
 
@@ -24,6 +25,7 @@ func main() {
 	env.LoadGlobalEnv(conf)
 
 	engine := gin.New()
+	engine.Use(mw.ParseFormMiddleware)
 	engine.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
