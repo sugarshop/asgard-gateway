@@ -57,6 +57,16 @@ func (s *LemonSqueezyService) ListCustomers(ctx context.Context) (*lemonsqueezy.
 	return customerApiResponse, err
 }
 
+// ListVariants get custormers list
+func (s *LemonSqueezyService) ListVariants(ctx context.Context) (*lemonsqueezy.VariantsApiResponse, error) {
+	variantsApiResponse, response, err := s.Client.Variants.List(ctx)
+	if response.HTTPResponse.StatusCode != http.StatusOK {
+		log.Println("[ListVariants]: err:", err)
+		return nil, err
+	}
+	return variantsApiResponse, err
+}
+
 // CreateCheckout create checkout link
 func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*lemonsqueezy.CheckoutApiResponse, error) {
 	expireDate := time.Now().AddDate(0, 0, 1)
@@ -85,7 +95,8 @@ func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*
 }
 
 // Verify verify if webhook is from lemonsqueezy
-func (s *LemonSqueezyService) Verify(ctx context.Context, signature string, body []byte) error {
-	s.Client.Webhooks.Verify(ctx, signature, body)
-	return nil
+func (s *LemonSqueezyService) Verify(ctx context.Context, signature string, body []byte) bool {
+	succ := s.Client.Webhooks.Verify(ctx, signature, body)
+	log.Println("[Verify]: success ", succ)
+	return succ
 }
