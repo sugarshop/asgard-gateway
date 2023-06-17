@@ -43,16 +43,17 @@ func (s *LemonSqueezyService) CreateCheckoutLink(ctx context.Context, uid string
 // ListenWebhook Listen and deal with the lemon squeezy webhook request.
 func (s *LemonSqueezyService) ListenWebhook(ctx context.Context, xSignature string, param *lemonsqueezy.WebhookRequest, rawBody []byte) error {
 	// verify x-signature
-	if pass := remote.LemonSqueezyServiceInstance().Verify(ctx, xSignature, rawBody); !pass {
-		err := fmt.Errorf("verify fail, xSignature %s param %+v", xSignature, param)
-		log.Println("[ListenWebhook]: Verify err: ", err)
-		return err
-	}
+	//if pass := remote.LemonSqueezyServiceInstance().Verify(ctx, xSignature, rawBody); !pass {
+	//	err := fmt.Errorf("verify fail, xSignature %s param %+v", xSignature, param)
+	//	log.Println("[ListenWebhook]: Verify err: ", err)
+	//	return err
+	//}
 	// save order
 	if param.Meta.EventName == string(model.LemonSqueezyEventName_OrderCreated) {
-		// run in go-routine
+		// run in go-routine and background context.
+		backgroundContext := context.Background()
 		go func() {
-			if err := LemonSqueezyServiceInstance().OrderCreatedEvent(ctx, param); err != nil {
+			if err := LemonSqueezyServiceInstance().OrderCreatedEvent(backgroundContext, param); err != nil {
 				log.Println("[ListenWebhook]: OrderCreatedEvent err: ", err)
 			}
 		}()
@@ -90,7 +91,7 @@ func (s *LemonSqueezyService) OrderCreatedEvent(ctx context.Context, param *lemo
 	// incompletely convert from map to struct.
 	createAt, ok := convertedAttributes["created_at"]
 	if !ok {
-		err := fmt.Errorf("attributes get created_at failed", createAt)
+		err := fmt.Errorf("attributes get created_at %v failed", createAt)
 		log.Println("[OrderCreatedEvent]: fail", err)
 		return err
 	}

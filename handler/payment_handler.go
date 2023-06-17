@@ -23,15 +23,20 @@ func NewPaymentHandler() *PaymentHandler {
 }
 
 func (h *PaymentHandler) Register(e *gin.Engine) {
-	e.GET("/v1/payment/lemonsqueezy/checkout", JSONWrapper(h.LemonSqueezy))
+	e.GET("/v1/payment/lemonsqueezy/checkout", JSONWrapper(h.CreateCheckout))
 	e.POST("/v1/payment/lemonsqueezy/webhook", JSONWrapper(h.WebHook))
 }
 
-// LemonSqueezy create lemonsqueezy checkout link
-func (s *PaymentHandler) LemonSqueezy(c *gin.Context) (interface{}, error) {
+// CreateCheckout create lemonsqueezy checkout link
+func (s *PaymentHandler) CreateCheckout(c *gin.Context) (interface{}, error) {
 	// todo: 防止高频攻击，需要进行限频.
 	ctx := context.Background()
-	link, err := service.LemonSqueezyServiceInstance().CreateCheckoutLink(ctx, "uiduiduid")
+	uid, err := util.String(c, "uid")
+	if err != nil {
+		log.Println("[CreateCheckout]: parser uid err ", err)
+		return nil, err
+	}
+	link, err := service.LemonSqueezyServiceInstance().CreateCheckoutLink(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +61,8 @@ func (h *PaymentHandler) WebHook(c *gin.Context) (interface{}, error) {
 		return nil, err
 	}
 	signature := c.GetHeader("X-Signature")
-	if err := service.WebHookServiceInstance().ListenLemonSqueezy(ctx, signature, &reqBody, rawBody); err != nil {
-		fmt.Printf("[WebHook]: ListenLemonSqueezy err:%s\n", err)
+	if err := service.LemonSqueezyServiceInstance().ListenWebhook(ctx, signature, &reqBody, rawBody); err != nil {
+		fmt.Printf("[WebHook]: ListenWebhook err:%s\n", err)
 		return nil, err
 	}
 	return map[string]interface{}{}, nil
