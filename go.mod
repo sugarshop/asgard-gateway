@@ -6,6 +6,7 @@ require (
 	github.com/apache/thrift v0.13.0
 	github.com/cloudwego/kitex v0.5.2
 	github.com/gin-gonic/gin v1.9.0
+	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nedpals/postgrest-go v0.1.3
 	github.com/nedpals/supabase-go v0.2.0
 	github.com/sashabaranov/go-openai v1.9.3
