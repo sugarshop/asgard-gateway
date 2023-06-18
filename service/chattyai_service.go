@@ -26,8 +26,10 @@ func ChattyAIServiceInstance() *ChattyAIService {
 }
 
 // CreateFreeSubscription create a ChattyAI subscription, when user first registered, create it.
-func (s *ChattyAIService) CreateFreeSubscription(ctx context.Context) error {
-	rights := &model.ChattyAIRights{}
+func (s *ChattyAIService) CreateFreeSubscription(ctx context.Context, uid string) error {
+	rights := &model.ChattyAIRights{
+		UID: uid,
+	}
 	// init as free level rights
 	rights.RenewalByLevel(model.ChattyAIRightsLevel_Free)
 	if err := dal.ChattyAIRightsDaoInstance().Create(ctx, rights); err != nil {

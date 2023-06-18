@@ -11,6 +11,7 @@ func handlers() []Handler {
 	return []Handler{
 		NewOpenAIHandler(),
 		NewPaymentHandler(),
+		NewAccountHandler(),
 	}
 }
 

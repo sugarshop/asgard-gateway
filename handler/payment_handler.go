@@ -51,7 +51,7 @@ func (h *PaymentHandler) WebHook(c *gin.Context) (interface{}, error) {
 	// bind json to reqBody
 	rawBody, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		log.Println("[WebHook]: ioutil.ReadAll err: ", err)
+		log.Println("[AccountWebHook]: ioutil.ReadAll err: ", err)
 		return nil, err
 	}
 	// rewrite data into body, ioutil.ReadAll will clear data in c.Request.Body
@@ -62,7 +62,7 @@ func (h *PaymentHandler) WebHook(c *gin.Context) (interface{}, error) {
 	}
 	signature := c.GetHeader("X-Signature")
 	if err := service.LemonSqueezyServiceInstance().ListenWebhook(ctx, signature, &reqBody, rawBody); err != nil {
-		fmt.Printf("[WebHook]: ListenWebhook err:%s\n", err)
+		fmt.Printf("[AccountWebHook]: ListenWebhook err:%s\n", err)
 		return nil, err
 	}
 	return map[string]interface{}{}, nil

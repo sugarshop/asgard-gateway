@@ -42,12 +42,13 @@ func (s *LemonSqueezyService) CreateCheckoutLink(ctx context.Context, uid string
 
 // ListenWebhook Listen and deal with the lemon squeezy webhook request.
 func (s *LemonSqueezyService) ListenWebhook(ctx context.Context, xSignature string, param *lemonsqueezy.WebhookRequest, rawBody []byte) error {
+	// todo avoid replay attack using timestamp tolerance
 	// verify x-signature
-	//if pass := remote.LemonSqueezyServiceInstance().Verify(ctx, xSignature, rawBody); !pass {
-	//	err := fmt.Errorf("verify fail, xSignature %s param %+v", xSignature, param)
-	//	log.Println("[ListenWebhook]: Verify err: ", err)
-	//	return err
-	//}
+	if pass := remote.LemonSqueezyServiceInstance().Verify(ctx, xSignature, rawBody); !pass {
+		err := fmt.Errorf("verify fail, xSignature %s param %+v", xSignature, param)
+		log.Println("[ListenWebhook]: Verify err: ", err)
+		return err
+	}
 	// save order
 	if param.Meta.EventName == string(model.LemonSqueezyEventName_OrderCreated) {
 		// run in go-routine and background context.
