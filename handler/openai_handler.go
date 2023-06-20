@@ -7,8 +7,10 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sugarshop/asgard-gateway/model"
 	"github.com/sugarshop/asgard-gateway/service"
 	"github.com/sugarshop/asgard-gateway/util"
@@ -23,6 +25,7 @@ func NewOpenAIHandler() *OpenAIHandler {
 
 func (h *OpenAIHandler) Register(e *gin.Engine) {
 	e.POST("/v1/openai/chat/completions", StreamWrapper(h.Completions))
+	e.POST("/v1/openai/audio/transcriptions", JSONWrapper(h.Transcriptions))
 }
 
 func (h *OpenAIHandler) Completions(c *gin.Context) error {
@@ -89,6 +92,55 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	}
 
 	return nil
+}
+
+// Transcriptions transcription from audio to text.
+func (h *OpenAIHandler) Transcriptions(c *gin.Context) (interface{}, error) {
+	ctx := util.RPCContext(c)
+	// bind json to reqBody
+	model, err := util.String(c, "model")
+	if err != nil {
+		log.Println("[Transcriptions]: get model from param err", err)
+		return nil, err
+	}
+	prompt, err := util.String(c, "prompt")
+	if err != nil {
+		log.Println("[Transcriptions]: get prompt from param err", err)
+		return nil, err
+	}
+	temperature, err := util.Float32(c, "temperature")
+	if err != nil {
+		log.Println("[Transcriptions]: get temperature from param err", err)
+		return nil, err
+	}
+	language, err := util.String(c, "language")
+	if err != nil {
+		log.Println("[Transcriptions]: get language from param err", err)
+		return nil, err
+	}
+	_, headers, err := c.Request.FormFile("file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "get file failed"})
+		return nil, err
+	}
+
+	// save file using filename
+	filepath := "./" + headers.Filename
+	err = c.SaveUploadedFile(headers, filepath)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "save file failed"})
+		return nil, err
+	}
+	defer os.Remove(filepath)
+
+	return service.OpenAIServiceInstance().Transcriptions(ctx, &openai.AudioRequest{
+		Model:       model,
+		FilePath:    filepath,
+		Prompt:      prompt,
+		Temperature: temperature,
+		Language:    language,
+		Format:      "json",
+	})
 }
 
 func writeResponse(w io.Writer, response interface{}, completion *model.Completion) bool {

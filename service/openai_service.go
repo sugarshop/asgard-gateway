@@ -96,3 +96,9 @@ func (s *OpenAIService) ChatCompletion(ctx context.Context, param *model.Complet
 	}
 	return &response, nil
 }
+
+// Transcriptions transcription from audio to text
+func (s *OpenAIService) Transcriptions(ctx context.Context, request *openai.AudioRequest) (openai.AudioResponse, error) {
+	// todo save text
+	return s.Client.CreateTranscription(ctx, *request)
+}

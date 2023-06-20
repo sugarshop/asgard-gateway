@@ -141,6 +141,32 @@ func PositiveInt64(c *gin.Context, key string) (int64, error) {
 	return v, nil
 }
 
+// Float32 获取float32格式参数
+func Float32(c *gin.Context, key string) (float32, error) {
+	value := c.Request.Form.Get(key)
+	if len(value) == 0 {
+		return 0, fmt.Errorf("param %s not set, code: %d", key, model.ErrCodeInvalidParam)
+	}
+	v, err := strconv.ParseFloat(value, 32)
+	if err != nil {
+		return 0, fmt.Errorf("error: %w, code: %d", err, model.ErrCodeInvalidParam)
+	}
+	return float32(v), nil
+}
+
+// Float64 获取float32格式参数
+func Float64(c *gin.Context, key string) (float64, error) {
+	value := c.Request.Form.Get(key)
+	if len(value) == 0 {
+		return 0, fmt.Errorf("param %s not set, code: %d", key, model.ErrCodeInvalidParam)
+	}
+	v, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0, fmt.Errorf("error: %w, code: %d", err, model.ErrCodeInvalidParam)
+	}
+	return v, nil
+}
+
 //func isApp(c *gin.Context) bool {
 //	return strings.Contains(c.GetHeader("User-Agent"), "is_app")
 //}
