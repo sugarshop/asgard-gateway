@@ -17,7 +17,6 @@ type OpenAIModel struct {
 type ChatRequest struct {
 	Model       string                         `json:"model,omitempty"`
 	Messages    []openai.ChatCompletionMessage `json:"messages"`
-	MaxTokens   int                            `json:"max_tokens,omitempty"`
 	Temperature float64                        `json:"temperature"`
 	Stream      bool                           `json:"stream"`
 }
@@ -36,8 +35,8 @@ func (e *OpenAIError) Error() string {
 type CompletionsReqBody struct {
 	Model       OpenAIModel                    `json:"model"`
 	Messages    []openai.ChatCompletionMessage `json:"messages"`
-	Key         string                         `json:"key"`
 	Temperature float64                        `json:"temperature"`
+	Stream      bool                           `json:"stream"`
 }
 
 // LogprobResult represents logprob result of Choice.

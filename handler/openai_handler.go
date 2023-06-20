@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,23 +9,16 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sashabaranov/go-openai"
 	"github.com/sugarshop/asgard-gateway/model"
-	"github.com/sugarshop/env"
+	"github.com/sugarshop/asgard-gateway/service"
+	"github.com/sugarshop/asgard-gateway/util"
 )
 
 type OpenAIHandler struct {
-	ApiKey string
 }
 
 func NewOpenAIHandler() *OpenAIHandler {
-	apiKey, ok := env.GlobalEnv().Get("OPENAIAPIKEY")
-	if !ok {
-		log.Println("no OPENAIAPIKEY env set")
-	}
-	return &OpenAIHandler{
-		ApiKey: apiKey,
-	}
+	return &OpenAIHandler{}
 }
 
 func (h *OpenAIHandler) Register(e *gin.Engine) {
@@ -34,6 +26,7 @@ func (h *OpenAIHandler) Register(e *gin.Engine) {
 }
 
 func (h *OpenAIHandler) Completions(c *gin.Context) error {
+	ctx := util.RPCContext(c)
 	var reqBody model.CompletionsReqBody
 	// bind json to reqBody
 	if err := c.BindJSON(&reqBody); err != nil {
@@ -41,12 +34,24 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		return err
 	}
 
-	stream, apiErr := h.OpenAIStream(c, &reqBody)
+	var curCompletion model.Completion
+
+	if !reqBody.Stream {
+		response, err := service.OpenAIServiceInstance().ChatCompletion(ctx, &reqBody)
+		writeResponse(c.Writer, response, &curCompletion)
+		return err
+	}
+
+	c.Writer.Header().Set("Content-Type", "text/event-stream")
+	c.Writer.Header().Set("Cache-Control", "no-cache")
+	c.Writer.Header().Set("Connection", "keep-alive")
+	// fixme only for test env
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	stream, apiErr := service.OpenAIServiceInstance().ChatCompletionStream(ctx, &reqBody)
 	if apiErr != nil {
 		return fmt.Errorf("StatusCode: %d, Type:%s, Code:%v", apiErr.HTTPStatusCode, apiErr.Type, apiErr.Code)
 	}
-
-	var curCompletion model.Completion
+	defer stream.Close() // defer after call for stream
 
 	gone := c.Stream(func(w io.Writer) bool {
 		response, err := stream.Recv()
@@ -59,20 +64,8 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 			fmt.Printf("[Completion]: Stream error: %v\n", err)
 			return false
 		}
-		// wrap completion.
-		h.constructCompletion(&curCompletion, response)
 
-		jsonBytes, err := json.Marshal(response)
-		if err != nil {
-			fmt.Printf("[Completion]: err:%v", err)
-			return false
-		}
-		formattedData := fmt.Sprintf("data: %s\n\n", string(jsonBytes))
-		if _, err = w.Write([]byte(formattedData)); err != nil {
-			fmt.Printf("[Completion]: Write data:%s, error: %v", formattedData, err)
-			return false
-		}
-		return true
+		return writeResponse(w, response, &curCompletion)
 	})
 	if gone {
 		// client disconnected in middle of stream
@@ -98,87 +91,19 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	return nil
 }
 
-func (h *OpenAIHandler) constructCompletion(cur *model.Completion, input interface{}) {
-	streamResponse, streamOk := input.(openai.ChatCompletionStreamResponse)
-	completionResponse, completionOk := input.(openai.ChatCompletionResponse)
-	var id string
-	var chatModel string
-	var role string
-	var content string
-	if streamOk {
-		id = streamResponse.ID
-		chatModel = streamResponse.Model
-		if len(streamResponse.Choices) > 0 {
-			role = streamResponse.Choices[0].Delta.Role
-		}
-		content = streamResponse.Choices[0].Delta.Content
-	}
-	if completionOk {
-		id = completionResponse.ID
-		chatModel = completionResponse.Model
-		if len(completionResponse.Choices) > 0 {
-			role = completionResponse.Choices[0].Message.Role
-		}
-		content = completionResponse.Choices[0].Message.Content
-	}
+func writeResponse(w io.Writer, response interface{}, completion *model.Completion) bool {
+	// wrap completion.
+	completion.ConstructMessage(response)
 
-	if len(cur.ChatID) == 0 {
-		cur.ChatID = id
-	}
-	if len(cur.Model) == 0 {
-		cur.Model = chatModel
-	}
-	if len(cur.Role) == 0 {
-		cur.Role = role
-	}
-	cur.Content += content
-}
-
-// OpenAIStream return completion stream of the OpenAIChat
-func (h *OpenAIHandler) OpenAIStream(c *gin.Context, param *model.CompletionsReqBody) (*openai.ChatCompletionStream, *openai.APIError) {
-	client := openai.NewClient(h.ApiKey)
-	ctx := context.Background()
-	c.Writer.Header().Set("Content-Type", "text/event-stream")
-	c.Writer.Header().Set("Cache-Control", "no-cache")
-	c.Writer.Header().Set("Connection", "keep-alive")
-	// fixme only for test env
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-
-	// default set to GPT3.5
-	modelStr := openai.GPT3Dot5Turbo
-	modelPtr := &param.Model
-	if modelPtr != nil {
-		modelStr = param.Model.ID
-	}
-	message := param.Messages
-	if len(param.Messages) >= 5 {
-		message = append([]openai.ChatCompletionMessage{param.Messages[0]}, param.Messages[len(param.Messages)-3:]...)
-	}
-	log.Printf("model: %v message length:%d", param.Model, len(param.Messages))
-	req := openai.ChatCompletionRequest{
-		Model:     modelStr,
-		MaxTokens: model.OPENAIMAXTOKENS,
-		Messages:  message,
-		Stream:    true,
-	}
-
-	stream, err := client.CreateChatCompletionStream(ctx, req)
+	jsonBytes, err := json.Marshal(response)
 	if err != nil {
-		apiErr := buildError(err)
-		fmt.Printf("ChatCompletionStream error Code: %v, Type:%s, StatusCode: %d", apiErr.Code, apiErr.Type, apiErr.HTTPStatusCode)
-		return nil, apiErr
+		fmt.Printf("[writeResponse]: err:%v", err)
+		return false
 	}
-	//defer stream.Close() // defer after call for stream
-	return stream, nil
-}
-
-// buildErrorResp construct APIError
-func buildError(err error) *openai.APIError {
-	var aer *openai.APIError
-	if errors.As(err, &aer) {
-		return aer
+	formattedData := fmt.Sprintf("data: %s\n\n", string(jsonBytes))
+	if _, err = w.Write([]byte(formattedData)); err != nil {
+		fmt.Printf("[writeResponse]: Write data:%s, error: %v", formattedData, err)
+		return false
 	}
-	// server deny
-	aer.HTTPStatusCode = 500
-	return aer
+	return true
 }
