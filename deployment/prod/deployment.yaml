@@ -17,7 +17,17 @@ spec:
     spec:
       containers:
         - name: asgard-gateway
-          image: registry.digitalocean.com/francisco/asgard-gateway:202305131923
+          command:
+            - /app/bootstrap.sh
+            - --conf=/app/config/config.json
+          image: registry.digitalocean.com/francisco/asgard-gateway:20230607202253
           resources: {}
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: asgard-gateway-config
+              mountPath: /app/config
+      volumes:
+        - name: asgard-gateway-config
+          configMap:
+            name: asgard-gateway-conf
