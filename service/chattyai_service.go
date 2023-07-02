@@ -25,6 +25,36 @@ func ChattyAIServiceInstance() *ChattyAIService {
 	return chattyaiService
 }
 
+// GetSubscriptionByUID get subscription by uid
+func (s *ChattyAIService) GetSubscriptionByUID(ctx context.Context, uid string) (*model.ChattyAIRights, error) {
+	rights, err := dal.ChattyAIRightsDaoInstance().GetByUID(ctx, uid)
+	if err != nil {
+		log.Println("[GetSubscriptionByUID]: GetByUID err: ", err)
+		return nil, err
+	}
+	return rights, nil
+}
+
+// TokenIsSufficient chatty_ai subscription token is sufficient.
+func (s *ChattyAIService) TokenIsSufficient(ctx context.Context, uid string) (bool, error) {
+	rights, err := dal.ChattyAIRightsDaoInstance().GetByUID(ctx, uid)
+	if err != nil {
+		log.Println("[TokenIsSufficient]: GetByUID err: ", err)
+		return false, err
+	}
+	return rights.TokenIsSufficient(), nil
+}
+
+// AssistantIsSufficient chatty_ai subscription assistant is sufficient.
+func (s *ChattyAIService) AssistantIsSufficient(ctx context.Context, uid string) (bool, error) {
+	rights, err := dal.ChattyAIRightsDaoInstance().GetByUID(ctx, uid)
+	if err != nil {
+		log.Println("[AssistantIsSufficient]: GetByUID err: ", err)
+		return false, err
+	}
+	return rights.AssistantIsSuuffcient(), nil
+}
+
 // CreateFreeSubscription create a ChattyAI subscription, when user first registered, create it.
 func (s *ChattyAIService) CreateFreeSubscription(ctx context.Context, uid string) error {
 	rights := &model.ChattyAIRights{
@@ -43,6 +73,15 @@ func (s *ChattyAIService) CreateFreeSubscription(ctx context.Context, uid string
 func (s *ChattyAIService) UpdateSubscription(ctx context.Context, uid string, level model.ChattyAIRightsLevel) error {
 	if err := dal.ChattyAIRightsDaoInstance().UpdateLevel(ctx, uid, level); err != nil {
 		log.Println("[UpdateSubscription]: UpdateLevel err ", err)
+		return err
+	}
+	return nil
+}
+
+// UpdateTokenUsed update user's token used service
+func (s *ChattyAIService) UpdateTokenUsed(ctx context.Context, uid string, token int64) error {
+	if err := dal.ChattyAIRightsDaoInstance().UpdateTokenUsed(ctx, uid, token); err != nil {
+		log.Println("[UpdateTokenUsed]: UpdateTokenUsed err ", err)
 		return err
 	}
 	return nil

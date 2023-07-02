@@ -37,6 +37,7 @@ type CompletionsReqBody struct {
 	Messages    []openai.ChatCompletionMessage `json:"messages"`
 	Temperature float64                        `json:"temperature"`
 	Stream      bool                           `json:"stream"`
+	UID         string                         `json:"uid"`
 }
 
 // LogprobResult represents logprob result of Choice.

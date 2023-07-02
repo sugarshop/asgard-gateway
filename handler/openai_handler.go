@@ -26,6 +26,7 @@ func NewOpenAIHandler() *OpenAIHandler {
 func (h *OpenAIHandler) Register(e *gin.Engine) {
 	e.POST("/v1/openai/chat/completions", StreamWrapper(h.Completions))
 	e.POST("/v1/openai/audio/transcriptions", JSONWrapper(h.Transcriptions))
+	e.GET("/v1/openai/subscription", JSONWrapper(h.GetSubscription))
 }
 
 func (h *OpenAIHandler) Completions(c *gin.Context) error {
@@ -36,7 +37,14 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return err
 	}
-
+	tokenSufficient, err := service.ChattyAIServiceInstance().TokenIsSufficient(ctx, reqBody.UID)
+	if err != nil {
+		log.Println("[Completions]: TokenIsSufficient err ", err)
+		return err
+	}
+	if !tokenSufficient {
+		return fmt.Errorf("token insufficient")
+	}
 	var curCompletion model.Completion
 
 	if !reqBody.Stream {
@@ -75,6 +83,9 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 		// do something after client is gone
 		log.Println("client is gone")
 	}
+
+	// update tokens
+	service.OpenAIServiceInstance().CountStreamTokens(&reqBody, curCompletion.Content)
 	reqCompletion := model.Completion{
 		ChatID: curCompletion.ChatID,
 		Model:  curCompletion.Model,
@@ -141,6 +152,22 @@ func (h *OpenAIHandler) Transcriptions(c *gin.Context) (interface{}, error) {
 		Language:    language,
 		Format:      "json",
 	})
+}
+
+// GetSubscription get ChattyAI Quota
+func (h *OpenAIHandler) GetSubscription(c *gin.Context) (interface{}, error) {
+	ctx := util.RPCContext(c)
+	uid, err := util.String(c, "uid")
+	if err != nil {
+		log.Println("[GetSubscription]: get uid from param err", err)
+		return nil, err
+	}
+	rights, err := service.ChattyAIServiceInstance().GetSubscriptionByUID(ctx, uid)
+	if err != nil {
+		log.Println("[GetSubscription]: GetSubscriptionByUID err", err)
+		return nil, err
+	}
+	return rights, nil
 }
 
 func writeResponse(w io.Writer, response interface{}, completion *model.Completion) bool {
