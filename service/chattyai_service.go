@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"sync"
 
@@ -37,12 +38,42 @@ func (s *ChattyAIService) GetSubscriptionByUID(ctx context.Context, uid string) 
 
 // TokenIsSufficient chatty_ai subscription token is sufficient.
 func (s *ChattyAIService) TokenIsSufficient(ctx context.Context, uid string) (bool, error) {
+	if len(uid) <= 0 {
+		log.Println("empty uid")
+		return false, fmt.Errorf("empty uid")
+	}
 	rights, err := dal.ChattyAIRightsDaoInstance().GetByUID(ctx, uid)
 	if err != nil {
 		log.Println("[TokenIsSufficient]: GetByUID err: ", err)
 		return false, err
 	}
 	return rights.TokenIsSufficient(), nil
+}
+
+// APIAccess weather has api access
+func (s *ChattyAIService) APIAccess(ctx context.Context, apikey string) (bool, error) {
+	// using uid as api_key
+	if len(apikey) <= 0 {
+		log.Println("empty api_key")
+		return false, fmt.Errorf("empty api_key")
+	}
+	uid := apikey
+	rights, err := dal.ChattyAIRightsDaoInstance().GetByUID(ctx, uid)
+	if err != nil {
+		log.Println("[APIAccess]: GetByUID err: ", err)
+		return false, err
+	}
+	return rights.APIAccess && rights.TokenIsSufficient(), nil
+}
+
+// GPT4Access weather has gpt4 access
+func (s *ChattyAIService) GPT4Access(ctx context.Context, uid string) (bool, error) {
+	rights, err := dal.ChattyAIRightsDaoInstance().GetByUID(ctx, uid)
+	if err != nil {
+		log.Println("[GPT4Access]: GetByUID err: ", err)
+		return false, err
+	}
+	return rights.GPT4Access, nil
 }
 
 // AssistantIsSufficient chatty_ai subscription assistant is sufficient.

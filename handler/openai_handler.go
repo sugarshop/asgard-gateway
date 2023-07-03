@@ -27,6 +27,8 @@ func (h *OpenAIHandler) Register(e *gin.Engine) {
 	e.POST("/v1/openai/chat/completions", StreamWrapper(h.Completions))
 	e.POST("/v1/openai/audio/transcriptions", JSONWrapper(h.Transcriptions))
 	e.GET("/v1/openai/subscription", JSONWrapper(h.GetSubscription))
+
+	e.POST("/v1/openai/chat/completions/api", StreamWrapper(h.CompletionsWithAPI))
 }
 
 func (h *OpenAIHandler) Completions(c *gin.Context) error {
@@ -45,10 +47,38 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	if !tokenSufficient {
 		return fmt.Errorf("token insufficient")
 	}
+	return h.completions(c, &reqBody)
+}
+
+// CompletionsWithAPI Completions from api request
+func (h *OpenAIHandler) CompletionsWithAPI(c *gin.Context) error {
+	ctx := util.RPCContext(c)
+	var reqBody model.CompletionsReqBody
+	// bind json to reqBody
+	if err := c.BindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return err
+	}
+	api_access, err := service.ChattyAIServiceInstance().APIAccess(ctx, reqBody.APIKey)
+	if err != nil {
+		log.Println("[Completions]: APIAccess err ", err)
+		return err
+	}
+	if !api_access {
+		return fmt.Errorf("access denied, please check quota")
+	}
+	// using api_key as uid
+	reqBody.UID = reqBody.APIKey
+	return h.completions(c, &reqBody)
+}
+
+func (h *OpenAIHandler) completions(c *gin.Context, reqBody *model.CompletionsReqBody) error {
+	ctx := util.RPCContext(c)
+
 	var curCompletion model.Completion
 
 	if !reqBody.Stream {
-		response, err := service.OpenAIServiceInstance().ChatCompletion(ctx, &reqBody)
+		response, err := service.OpenAIServiceInstance().ChatCompletion(ctx, reqBody)
 		writeResponse(c.Writer, response, &curCompletion)
 		return err
 	}
@@ -58,7 +88,7 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	c.Writer.Header().Set("Connection", "keep-alive")
 	// fixme only for test env
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	stream, apiErr := service.OpenAIServiceInstance().ChatCompletionStream(ctx, &reqBody)
+	stream, apiErr := service.OpenAIServiceInstance().ChatCompletionStream(ctx, reqBody)
 	if apiErr != nil {
 		return fmt.Errorf("StatusCode: %d, Type:%s, Code:%v", apiErr.HTTPStatusCode, apiErr.Type, apiErr.Code)
 	}
@@ -85,7 +115,7 @@ func (h *OpenAIHandler) Completions(c *gin.Context) error {
 	}
 
 	// update tokens
-	service.OpenAIServiceInstance().CountStreamTokens(&reqBody, curCompletion.Content)
+	service.OpenAIServiceInstance().CountStreamTokens(reqBody, curCompletion.Content)
 	reqCompletion := model.Completion{
 		ChatID: curCompletion.ChatID,
 		Model:  curCompletion.Model,

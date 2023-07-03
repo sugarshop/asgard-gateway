@@ -44,7 +44,6 @@ func (s *ChattyAIRights) AssistantIsSuuffcient() bool {
 func (s *ChattyAIRights) RenewalByLevel(level ChattyAIRightsLevel) {
 	// clear usage data
 	s.TokenUsed = 0
-	s.AssistantUsed = 0
 
 	// update level
 	s.TokenQuota = GetTokenQuotaByLevel(level)
@@ -96,25 +95,32 @@ func GetAssistantQuotaByLevel(level ChattyAIRightsLevel) int64 {
 }
 
 func GetGPT4Access(level ChattyAIRightsLevel) bool {
+	access := false
 	switch level {
 	case ChattyAIRightsLevel_Free:
-		return false
+		access = false
 	case ChattyAIRightsLevel_Basic:
+		access = true
 	case ChattyAIRightsLevel_Advanced:
+		access = true
 	case ChattyAIRightsLevel_Pro:
-		return true
+		access = true
+
 	}
-	return false
+	return access
 }
 
 func GetAPIAccess(level ChattyAIRightsLevel) bool {
+	access := false
 	switch level {
 	case ChattyAIRightsLevel_Free:
-		return false
+		access = false
 	case ChattyAIRightsLevel_Basic:
+		access = true
 	case ChattyAIRightsLevel_Advanced:
+		access = true
 	case ChattyAIRightsLevel_Pro:
-		return true
+		access = true
 	}
-	return false
+	return access
 }

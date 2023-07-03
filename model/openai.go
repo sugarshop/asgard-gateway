@@ -38,6 +38,7 @@ type CompletionsReqBody struct {
 	Temperature float64                        `json:"temperature"`
 	Stream      bool                           `json:"stream"`
 	UID         string                         `json:"uid"`
+	APIKey      string                         `json:"api_key"`
 }
 
 // LogprobResult represents logprob result of Choice.
