@@ -14,6 +14,7 @@ import (
 // LemonSqueezyService lemon squeezy service
 type LemonSqueezyService struct {
 	Client              *lemonsqueezy.Client
+	VerifyClient        *lemonsqueezy.Client
 	StoreID             string
 	AssociatedVariantID string
 }
@@ -37,9 +38,14 @@ func LemonSqueezyServiceInstance() *LemonSqueezyService {
 	if !ok {
 		log.Println("no LEMONSQUEEZYAPIKEY env set")
 	}
+	signingSecret, ok := env.GlobalEnv().Get("LEMONSQUEEZYSIGNINGSECRET")
+	if !ok {
+		log.Println("no LEMONSQUEEZYSIGNINGSECRET env set")
+	}
 	lemonSqueezyOnce.Do(func() {
 		lemonSqueezyService = &LemonSqueezyService{
 			Client:              lemonsqueezy.New(lemonsqueezy.WithAPIKey(apiKey)),
+			VerifyClient:        lemonsqueezy.New(lemonsqueezy.WithSigningSecret(signingSecret)),
 			StoreID:             storeID,
 			AssociatedVariantID: variantID,
 		}
@@ -96,7 +102,7 @@ func (s *LemonSqueezyService) CreateCheckout(ctx context.Context, uid string) (*
 
 // Verify verify if webhook is from lemonsqueezy
 func (s *LemonSqueezyService) Verify(ctx context.Context, signature string, body []byte) bool {
-	succ := s.Client.Webhooks.Verify(ctx, signature, body)
+	succ := s.VerifyClient.Webhooks.Verify(ctx, signature, body)
 	log.Println("[Verify]: success ", succ)
 	return succ
 }
