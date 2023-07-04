@@ -10,8 +10,8 @@ type Handler interface {
 func handlers() []Handler {
 	return []Handler{
 		NewOpenAIHandler(),
-		NewWebhookHandler(),
 		NewPaymentHandler(),
+		NewAccountHandler(),
 	}
 }
 

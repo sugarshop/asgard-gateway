@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/model"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sugarshop/asgard-gateway/model"
 )
 
 func TestOpenAIHandler_Completions(t *testing.T) {
@@ -27,9 +28,9 @@ func TestOpenAIHandler_Completions(t *testing.T) {
 	h.Register(router)
 	// Create a new HTTP request
 	reqBody := model.CompletionsReqBody{
-		Model: model.OpenAIModel{ID: "gpt-3.5-turbo"},
+		Model:       model.OpenAIModel{ID: "gpt-3.5-turbo"},
 		Temperature: 1,
-		Key: "key",
+		APIKey:      "key",
 		Messages: []openai.ChatCompletionMessage{
 			{Role: "system", Content: "who are u?"},
 		},
@@ -39,7 +40,6 @@ func TestOpenAIHandler_Completions(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create request: %v", err)
 	}
-
 
 	// perform the test request
 	router.ServeHTTP(rec, req)

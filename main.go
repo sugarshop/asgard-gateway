@@ -11,6 +11,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sugarshop/asgard-gateway/db"
 	"github.com/sugarshop/asgard-gateway/handler"
+	"github.com/sugarshop/asgard-gateway/mw"
+	"github.com/sugarshop/asgard-gateway/remote"
+	"github.com/sugarshop/asgard-gateway/service"
 	"github.com/sugarshop/env"
 )
 
@@ -24,6 +27,7 @@ func main() {
 	env.LoadGlobalEnv(conf)
 
 	engine := gin.New()
+	engine.Use(mw.ParseFormMiddleware)
 	engine.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -33,6 +37,8 @@ func main() {
 	// init db
 	db.Init()
 	fmt.Println("[main]: db init success")
+	Init()
+	fmt.Println("[main]: service init success")
 
 	// register other api
 	handler.Register(engine)
@@ -53,4 +59,9 @@ func main() {
 	// kill -9 is syscall.SIGKILL but can't be catch, so don't need add it
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+}
+
+func Init() {
+	remote.Init()
+	service.Init()
 }
