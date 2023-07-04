@@ -40,6 +40,7 @@ jobs:
       with:
         token: ${{ secrets.PAT }}
         repository: sugarshop/rpc
+        ref: master
         path: rpc
     - name: Install dependencies
       working-directory: env.REPO_NAME
