@@ -23,9 +23,9 @@ var (
 
 // ClerkServiceInstance add clerk service
 func ClerkServiceInstance() *ClerkService {
-	secret, ok := env.GlobalEnv().Get("CLERKSECRET")
+	secret, ok := env.GlobalEnv().Get("CLERKSIGNINGSECRET")
 	if !ok {
-		log.Println("[ClerkServiceInstance]: clerksecret get failed")
+		log.Println("[ClerkServiceInstance]: clerksigningsecret get failed")
 	}
 	clerkOnce.Do(func() {
 		wh, err := svix.NewWebhook(secret)
