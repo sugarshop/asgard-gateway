@@ -2,7 +2,7 @@ package mw
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -16,12 +16,12 @@ func ParseFormMiddleware(c *gin.Context) {
 		log.Println(ctx, "parse form failed ", err)
 	}
 
-	body, err := ioutil.ReadAll(c.Request.Body)
+	body, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Println(ctx, "read request body error: ", err)
 	}
 	// rewrite body after read it.
-	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 
 	c.Next()
 }

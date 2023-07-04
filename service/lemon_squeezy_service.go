@@ -151,11 +151,13 @@ func (s *LemonSqueezyService) OrderCreatedEvent(ctx context.Context, param *lemo
 		return nil
 	} else if orderAttr.Status == model.LemonSqueezyOrderStatus_Pending {
 		// todo pending logic
-		//return err
+		return nil
 	} else if orderAttr.Status == model.LemonSqueezyOrderStatus_Refund {
 		// todo DeleteSubscription
+		return nil
 	} else if orderAttr.Status == model.LemonSqueezyOrderStatus_Failed {
 		// todo deal with refund logic
+		return nil
 	}
 	return nil
 }

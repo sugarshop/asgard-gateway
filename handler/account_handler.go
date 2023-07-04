@@ -3,7 +3,7 @@ package handler
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 
@@ -30,13 +30,13 @@ func (h *AccountHandler) AccountWebHook(c *gin.Context) (interface{}, error) {
 	var reqBody model.ClerkEvent
 	ctx := util.RPCContext(c)
 	// bind json to reqBody
-	rawBody, err := ioutil.ReadAll(c.Request.Body)
+	rawBody, err := io.ReadAll(c.Request.Body)
 	if err != nil {
 		log.Println("[AccountWebHook]: ioutil.ReadAll err: ", err)
 		return nil, err
 	}
 	// rewrite data into body, ioutil.ReadAll will clear data in c.Request.Body
-	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(rawBody))
+	c.Request.Body = io.NopCloser(bytes.NewBuffer(rawBody))
 	if err := c.BindJSON(&reqBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return nil, err
