@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sugarshop/asgard-gateway/db"
 	"github.com/sugarshop/asgard-gateway/handler"
 	"github.com/sugarshop/asgard-gateway/mw"
 	"github.com/sugarshop/asgard-gateway/remote"
@@ -35,7 +34,7 @@ func main() {
 	})
 
 	// init db
-	db.Init()
+	//db.Init()
 	fmt.Println("[main]: db init success")
 	Init()
 	fmt.Println("[main]: service init success")

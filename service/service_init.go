@@ -5,4 +5,5 @@ func Init() {
 	ClerkServiceInstance()
 	LemonSqueezyServiceInstance()
 	OpenAIServiceInstance()
+	DiscordBotServiceInstance()
 }

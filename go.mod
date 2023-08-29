@@ -5,20 +5,23 @@ go 1.18
 require (
 	github.com/alicebob/miniredis/v2 v2.30.4
 	github.com/apache/thrift v0.13.0
+	github.com/bwmarrin/discordgo v0.27.1
 	github.com/cloudwego/kitex v0.5.2
 	github.com/gin-gonic/gin v1.9.0
+	github.com/hashicorp/golang-lru/v2 v2.0.6
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/nedpals/postgrest-go v0.1.3
 	github.com/nedpals/supabase-go v0.2.0
 	github.com/pkoukk/tiktoken-go v0.1.3
 	github.com/redis/go-redis/v9 v9.0.5
-	github.com/sashabaranov/go-openai v1.9.3
+	github.com/sashabaranov/go-openai v1.12.0
 	github.com/stretchr/testify v1.8.4
 	github.com/sugarshop/conv v1.0.0
 	github.com/sugarshop/env v1.0.1
 	github.com/sugarshop/lemonsqueezy-go v1.0.3
 	github.com/sugarshop/sugarredis v1.0.1
 	github.com/svix/svix-webhooks v1.4.12
+	github.com/tiktoken-go/tokenizer v0.1.0
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/gorm v1.25.1
 )
@@ -34,7 +37,7 @@ require (
 	github.com/cloudwego/thriftgo v0.2.9 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/dlclark/regexp2 v1.8.1 // indirect
+	github.com/dlclark/regexp2 v1.9.0 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -45,6 +48,7 @@ require (
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
+	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
