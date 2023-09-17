@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/pkg/bot"
-	"github.com/sugarshop/asgard-gateway/pkg/commands"
-	"github.com/sugarshop/asgard-gateway/pkg/commands/gpt"
-	"github.com/sugarshop/asgard-gateway/pkg/constants"
+	"github.com/sugarshop/asgard-gateway/discord/bot"
+	"github.com/sugarshop/asgard-gateway/discord/commander"
+	"github.com/sugarshop/asgard-gateway/discord/commands/gpt"
+	"github.com/sugarshop/asgard-gateway/discord/constants"
 	"github.com/sugarshop/env"
 )
 
@@ -46,19 +46,9 @@ func DiscordBotServiceInstance() *DiscordBotService {
 	}
 	openaiClient := openai.NewClient(openaiKey)
 	ignoredChannelsCache := &gpt.IgnoredChannelsCache{}
-	discordBot.Router.Register(commands.ChatCommand(&commands.ChatCommandParams{
-		OpenAIClient: openaiClient,
-		OpenAICompletionModels: []string{
-			"gpt-4",
-			"gpt-3.5-turbo",
-			"gpt-4-0314",
-			"gpt-3.5-turbo-0301",
-		},
-		GPTMessagesCache:     gptMessagesCache,
-		IgnoredChannelsCache: ignoredChannelsCache,
-	}))
 
-	discordBot.Router.Register(commands.ImageCommand(openaiClient))
+	// register all discord command
+	commander.Register(discordBot)
 
 	// Run the bot
 	discordBot.Run("", true)

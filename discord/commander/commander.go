@@ -11,7 +11,6 @@ type Commander interface {
 
 func commanders() []Commander {
 	return []Commander{
-		NewGPTCommander(true),  // GPT bot with DM permission
 		NewGPTCommander(false), // GPT bot without permission
 		NewDalleCommander(true),
 	}
