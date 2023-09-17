@@ -3,20 +3,25 @@ package commands
 import (
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/pkg/bot"
-	"github.com/sugarshop/asgard-gateway/pkg/commands/dalle"
+	"github.com/sugarshop/asgard-gateway/discord/bot"
+	"github.com/sugarshop/asgard-gateway/discord/commands/dalle"
 )
 
 const imageCommandName = "image"
 
-func ImageCommand(client *openai.Client) *bot.Command {
+type ImageCommandParams struct {
+	OpenAIClient *openai.Client
+	DMPermission bool
+}
+
+func ImageCommand(params *ImageCommandParams) *bot.Command {
 	return &bot.Command{
 		Name:                     imageCommandName,
 		Description:              "Generate creative images from textual descriptions",
-		DMPermission:             false,
+		DMPermission:             params.DMPermission,
 		DefaultMemberPermissions: discord.PermissionViewChannel,
 		SubCommands: bot.NewRouter([]*bot.Command{
-			dalle.Command(client),
+			dalle.Command(params.OpenAIClient),
 		}),
 	}
 }

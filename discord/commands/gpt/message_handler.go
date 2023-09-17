@@ -6,8 +6,8 @@ import (
 
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/pkg/bot"
-	"github.com/sugarshop/asgard-gateway/pkg/utils"
+	"github.com/sugarshop/asgard-gateway/discord/bot"
+	"github.com/sugarshop/asgard-gateway/discord/utils"
 )
 
 const (

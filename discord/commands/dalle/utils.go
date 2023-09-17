@@ -5,7 +5,7 @@ import (
 
 	discord "github.com/bwmarrin/discordgo"
 	"github.com/sashabaranov/go-openai"
-	"github.com/sugarshop/asgard-gateway/pkg/constants"
+	"github.com/sugarshop/asgard-gateway/discord/constants"
 )
 
 const (
