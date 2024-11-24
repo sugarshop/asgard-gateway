@@ -3,6 +3,8 @@ A general-purpose API gateway for microservices to provide an HTTP endpoint, nam
 
 The project uses [gin](https://github.com/gin-gonic/gin) as the `web` framework for the public access gateway layer.
 
+Go RPC framework [cloudwego/kitex](https://github.com/cloudwego/kitex)
+
 # Design Doc
 
 - [Wiki Page](https://gamma.app/public/ChattyAI-l79uftz5bxwbdd8?mode=doc)
